@@ -1,0 +1,2004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
+<title>JACKPOT ARENA — Win Real Money</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+
+<!-- Firebase v9 compat SDK — loaded synchronously so firebase global is ready -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script>
+// Safety check — if CDN failed to load, mark firebase as unavailable
+window._firebaseSDKLoaded = (typeof firebase !== 'undefined');
+</script>
+
+<style>
+:root{
+  /* Core palette — dark casino */
+  --green:#00e676;       /* neon emerald — wins, success, primary CTA */
+  --gold:#ffd600;        /* rich gold — jackpot, prizes */
+  --red:#ff3d71;         /* vivid crimson — withdraw, danger */
+  --pink:#f50057;        /* hot pink — accents */
+  --blue:#00b0ff;        /* electric blue — M-Pesa, info */
+
+  /* Backgrounds — deep dark layers */
+  --bg:#0a0d14;          /* near-black base */
+  --bg2:#0f1420;         /* slightly lighter layer */
+  --card:#141927;        /* card surface */
+  --card2:#1a2136;       /* elevated card */
+  --border:#1e2d47;      /* subtle dark border */
+  --border2:#2a3d5c;     /* medium border */
+
+  /* Text */
+  --text:#e8edf5;        /* primary text */
+  --muted:#5a7296;       /* secondary / labels */
+  --muted2:#8ba3c0;      /* tertiary */
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monospace;min-height:100vh;overflow-x:hidden}
+h1,h2,.logo{font-family:'Orbitron',monospace}
+#stat-games,#stat-wins,#stat-profit,#w-balance,#adm-users,#adm-bal,#adm-games{font-family:'Orbitron','Arial Black',Arial,sans-serif!important}
+
+/* Subtle noise + scan-lines for atmosphere */
+body::before{content:'';position:fixed;inset:0;background:
+  repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,230,118,0.015) 3px,rgba(0,230,118,0.015) 4px),
+  radial-gradient(ellipse at 20% 10%,rgba(0,176,255,0.06) 0%,transparent 50%),
+  radial-gradient(ellipse at 80% 90%,rgba(0,230,118,0.05) 0%,transparent 50%);
+  pointer-events:none;z-index:1000}
+
+.screen{display:none;min-height:100vh;animation:fadeIn 0.3s ease}
+.screen.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+@keyframes slide-up{from{transform:translateY(100%);opacity:0}to{transform:none;opacity:1}}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0}}
+@keyframes pop{0%{transform:scale(0.3);opacity:0}60%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
+@keyframes ticker{0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}
+@keyframes glow-green{0%,100%{box-shadow:0 0 8px rgba(0,230,118,0.4)}50%{box-shadow:0 0 28px rgba(0,230,118,0.8),0 0 50px rgba(0,230,118,0.3)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+@keyframes goldShimmer{0%,100%{box-shadow:0 0 10px rgba(255,214,0,0.3)}50%{box-shadow:0 0 24px rgba(255,214,0,0.7),0 0 40px rgba(255,214,0,0.2)}}
+
+/* ── TICKER ── */
+.ticker-wrap{
+  background:linear-gradient(90deg,#050810,#0a1020,#050810);
+  border-bottom:1px solid var(--border2);
+  padding:7px 0;overflow:hidden;white-space:nowrap
+}
+.ticker{display:inline-block;animation:ticker 18s linear infinite;font-size:11px;color:var(--muted2)}
+.ticker span{margin:0 24px;color:var(--green)}
+
+/* ── TOP BAR ── */
+.top-bar{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:12px 16px;
+  border-bottom:1px solid var(--border);
+  background:linear-gradient(180deg,var(--bg2),var(--card));
+  position:sticky;top:0;z-index:50;
+  backdrop-filter:blur(12px)
+}
+.logo-sm{font-family:'Orbitron',monospace;font-size:17px;color:var(--gold);letter-spacing:2px;text-shadow:0 0 20px rgba(255,214,0,0.4)}
+.wallet-chip{background:rgba(0,230,118,0.1);border:1px solid rgba(0,230,118,0.4);border-radius:20px;padding:5px 12px;font-size:12px;color:var(--green);cursor:pointer}
+
+/* ── BUTTONS ── */
+.btn{font-family:'Share Tech Mono',monospace;border:none;border-radius:10px;cursor:pointer;transition:all 0.2s;letter-spacing:1px;font-weight:700}
+
+.btn-primary{
+  background:linear-gradient(135deg,#00c853,#00e676);
+  color:#030f06;padding:14px 20px;font-size:16px;width:100%;border-radius:12px;
+  box-shadow:0 4px 20px rgba(0,230,118,0.3)
+}
+.btn-primary:hover{box-shadow:0 4px 30px rgba(0,230,118,0.6);transform:translateY(-1px)}
+.btn-primary:disabled{opacity:0.35;cursor:not-allowed;transform:none;box-shadow:none}
+
+.btn-gold{
+  background:linear-gradient(135deg,#f9a825,#ffd600);
+  color:#1a0f00;padding:14px 20px;font-size:16px;width:100%;border-radius:12px;
+  box-shadow:0 4px 20px rgba(255,214,0,0.3)
+}
+.btn-gold:hover{box-shadow:0 4px 30px rgba(255,214,0,0.6);transform:translateY(-1px)}
+
+.btn-outline{
+  background:transparent;border:1px solid var(--border2);
+  color:var(--muted2);padding:10px 16px;font-size:12px;border-radius:8px
+}
+.btn-outline:hover{border-color:var(--green);color:var(--green)}
+
+.btn-red{
+  background:linear-gradient(135deg,#c62828,#ff3d71);
+  color:#fff;padding:14px 20px;font-size:16px;width:100%;border-radius:12px;
+  box-shadow:0 4px 20px rgba(255,61,113,0.3)
+}
+.btn-red:hover{box-shadow:0 4px 30px rgba(255,61,113,0.6);transform:translateY(-1px)}
+
+.btn-purple{background:linear-gradient(135deg,#7c4dff,#5c35cc);color:#fff;padding:14px 20px;font-size:15px;width:100%;border-radius:12px}
+
+/* ── INPUTS ── */
+.inp{
+  width:100%;background:var(--bg2);border:1px solid var(--border2);
+  border-radius:10px;padding:13px 16px;color:var(--text);font-size:15px;
+  font-family:'Share Tech Mono',monospace;outline:none;transition:all 0.2s
+}
+.inp:focus{border-color:var(--green);box-shadow:0 0 10px rgba(0,230,118,0.2);background:var(--card2)}
+.inp::placeholder{color:var(--muted)}
+.inp-group{position:relative}
+.inp-prefix{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--green);font-size:14px;pointer-events:none;white-space:nowrap}
+.inp.has-prefix{padding-left:88px}
+label{display:block;font-size:11px;color:var(--muted);letter-spacing:1.5px;margin-bottom:7px;text-transform:uppercase}
+input[type=range]{width:100%;accent-color:var(--green);cursor:pointer;margin:6px 0}
+
+/* ── CARDS ── */
+.card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:14px;padding:16px
+}
+.card-green{border-color:rgba(0,230,118,0.4);box-shadow:0 0 20px rgba(0,230,118,0.1)}
+
+/* ── MODALS ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:200;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+.modal-overlay.hidden{display:none}
+.modal{
+  background:linear-gradient(180deg,var(--card2),var(--card));
+  border:1px solid var(--border2);border-radius:20px 20px 0 0;
+  padding:24px 20px;width:100%;max-width:480px;
+  animation:slide-up 0.3s ease;max-height:90vh;overflow-y:auto;
+  box-shadow:0 -8px 40px rgba(0,0,0,0.6)
+}
+.modal-handle{width:40px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 18px}
+
+/* ── MARKET / PCT BUTTONS ── */
+.mkt-btn{
+  background:var(--bg2);border:2px solid var(--border2);
+  border-radius:12px;padding:12px 6px;cursor:pointer;text-align:center;
+  color:var(--text);transition:all 0.2s;width:100%
+}
+.mkt-btn:hover{border-color:var(--muted2);background:var(--card2)}
+.mkt-btn.sel{border-color:var(--green);background:rgba(0,230,118,0.08);animation:glow-green 1.5s infinite}
+
+.pct-btn{
+  flex:1;background:var(--bg2);border:1px solid var(--border2);
+  border-radius:8px;padding:7px 0;color:var(--muted2);cursor:pointer;
+  font-size:12px;font-family:'Share Tech Mono',monospace;transition:all 0.2s
+}
+.pct-btn:hover{border-color:var(--green);color:var(--green);background:rgba(0,230,118,0.07)}
+
+/* ── BADGES ── */
+.badge{display:inline-block;border-radius:20px;padding:3px 10px;font-size:10px;letter-spacing:1px;font-weight:700}
+.badge-green{background:rgba(0,230,118,0.12);border:1px solid rgba(0,230,118,0.5);color:var(--green)}
+.badge-gold{background:rgba(255,214,0,0.12);border:1px solid rgba(255,214,0,0.5);color:var(--gold)}
+.badge-red{background:rgba(255,61,113,0.12);border:1px solid rgba(255,61,113,0.5);color:var(--red)}
+.badge-muted{background:var(--bg2);border:1px solid var(--border2);color:var(--muted2)}
+.badge-live{background:rgba(0,230,118,0.12);border:1px solid rgba(0,230,118,0.5);color:var(--green);animation:blink 1.2s infinite}
+
+/* ── TX ROWS ── */
+.tx-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.tx-icon{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:4px;background:var(--bg2);border-radius:10px;padding:4px;margin-bottom:16px;border:1px solid var(--border)}
+.tab{flex:1;padding:8px;text-align:center;border-radius:7px;cursor:pointer;font-size:12px;color:var(--muted);transition:all 0.2s;border:none;background:transparent;font-family:'Share Tech Mono',monospace;letter-spacing:1px}
+.tab.active{background:var(--card2);color:var(--green);border:1px solid rgba(0,230,118,0.3);box-shadow:0 0 10px rgba(0,230,118,0.1)}
+
+/* ── SPINNER ── */
+.spinner{width:32px;height:32px;border:3px solid var(--border2);border-top-color:var(--green);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;
+  background:linear-gradient(180deg,var(--card),var(--bg2));
+  border-top:1px solid var(--border2);
+  display:flex;z-index:50;padding-bottom:env(safe-area-inset-bottom);
+  backdrop-filter:blur(16px)
+}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 4px;cursor:pointer;color:var(--muted);font-size:11px;letter-spacing:1px;transition:all 0.2s;border:none;background:transparent;font-family:'Share Tech Mono',monospace;font-weight:700}
+.nav-item.active{color:var(--green)}
+.nav-item.active .nav-icon{filter:drop-shadow(0 0 6px rgba(0,230,118,0.7))}
+.nav-icon{font-size:24px;margin-bottom:2px}
+
+/* ── CONFETTI ── */
+#confetti-wrap{position:fixed;inset:0;pointer-events:none;z-index:999}
+.cp{position:absolute;top:-20px;border-radius:2px;animation:fall 3s ease-in forwards}
+
+/* ── LOBBY ── */
+.lobby-player{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:8px}
+.lobby-player.ready{border-color:rgba(0,230,118,0.5);background:rgba(0,230,118,0.05)}
+
+/* ── ADMIN TABLE ── */
+.admin-table{width:100%;border-collapse:collapse;font-size:11px}
+.admin-table th{color:var(--muted);letter-spacing:1px;padding:8px 6px;border-bottom:1px solid var(--border2);text-align:left}
+.admin-table td{padding:8px 6px;border-bottom:1px solid var(--border);vertical-align:middle}
+
+/* ── AUTH SCREEN special ── */
+#s-auth{background:radial-gradient(ellipse at 50% 0%,rgba(0,176,255,0.12) 0%,var(--bg) 60%)}
+</style>
+</head>
+<body>
+
+<div id="confetti-wrap"></div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!--  SCREEN: AUTH                                  -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="s-auth" class="screen active">
+  <div style="padding:40px 24px;max-width:420px;margin:0 auto">
+    <div style="text-align:center;margin-bottom:32px">
+      <div style="font-size:56px;margin-bottom:8px;filter:drop-shadow(0 0 20px rgba(255,214,0,0.6))">🏆</div>
+      <h1 style="font-size:32px;color:var(--gold);letter-spacing:4px;margin-bottom:4px;text-shadow:0 0 30px rgba(255,214,0,0.4)">JACKPOT ARENA</h1>
+      <div style="font-size:12px;color:var(--muted2);letter-spacing:2px;font-weight:700">PLAY • WIN • WITHDRAW</div>
+      <div id="auth-mode-badge" style="margin-top:8px"></div>
+    </div>
+
+    <div class="tabs" id="auth-tabs">
+      <button class="tab active" onclick="switchAuth('login')">LOGIN</button>
+      <button class="tab" onclick="switchAuth('register')">REGISTER</button>
+    </div>
+
+    <div id="auth-login">
+      <div style="margin-bottom:14px">
+        <label>PHONE NUMBER</label>
+        <div class="inp-group">
+          <span class="inp-prefix">🇰🇪 +254</span>
+          <input id="login-phone" class="inp has-prefix" type="tel" placeholder="7XX XXX XXX" maxlength="9"/>
+        </div>
+      </div>
+      <div style="margin-bottom:20px">
+        <label>PIN</label>
+        <input id="login-pin" class="inp" type="password" placeholder="4-digit PIN" maxlength="4" inputmode="numeric"/>
+      </div>
+      <button class="btn btn-primary" onclick="doLogin()">🔓 LOGIN</button>
+    </div>
+
+    <div id="auth-register" style="display:none">
+      <div style="margin-bottom:14px">
+        <label>FULL NAME</label>
+        <input id="reg-name" class="inp" type="text" placeholder="e.g. John Waweru" maxlength="30"/>
+      </div>
+      <div style="margin-bottom:14px">
+        <label>PHONE NUMBER</label>
+        <div class="inp-group">
+          <span class="inp-prefix">🇰🇪 +254</span>
+          <input id="reg-phone" class="inp has-prefix" type="tel" placeholder="7XX XXX XXX" maxlength="9"/>
+        </div>
+      </div>
+      <div style="margin-bottom:14px">
+        <label>CREATE PIN</label>
+        <input id="reg-pin" class="inp" type="password" placeholder="4-digit PIN" maxlength="4" inputmode="numeric"/>
+      </div>
+      <div style="margin-bottom:20px">
+        <label>CONFIRM PIN</label>
+        <input id="reg-pin2" class="inp" type="password" placeholder="Repeat PIN" maxlength="4" inputmode="numeric"/>
+      </div>
+      <button class="btn btn-primary" onclick="doRegister()">✅ CREATE ACCOUNT</button>
+    </div>
+
+    <div style="margin-top:20px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-size:10px;color:var(--muted);text-align:center">
+      <span id="fb-status">⏳ Connecting to Firebase…</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!--  SCREEN: WALLET                                -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="s-wallet" class="screen">
+  <div class="ticker-wrap">
+    <span class="ticker">📈 NSE: +2.4% &nbsp;|&nbsp; <span>💱 USD/KES: 129.50</span> &nbsp;|&nbsp; 📱 M-Pesa: LIVE &nbsp;|&nbsp; ₿ BTC: KSh 8,240,000 &nbsp;|&nbsp; 🚌 Matatu: +12% &nbsp;|&nbsp; 🤝 Chama: +9%</span>
+  </div>
+  <div class="top-bar">
+    <span class="logo-sm" id="main-logo" onclick="adminTap()" style="cursor:pointer;user-select:none">🏆 JACKPOT ARENA</span>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span id="w-user-badge" class="badge badge-green">PLAYER</span>
+      <button class="btn btn-outline" style="padding:5px 10px;font-size:11px" onclick="doLogout()">LOGOUT</button>
+    </div>
+  </div>
+
+  <div style="padding:20px 16px;max-width:480px;margin:0 auto;padding-bottom:90px">
+    <div style="background:linear-gradient(135deg,#0d1f3c,#0a1628,#0d2a1a);border:1px solid var(--border2);border-radius:18px;padding:24px;margin-bottom:16px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.05)">
+      <div style="font-size:13px;color:var(--muted2);letter-spacing:3px;margin-bottom:8px">WALLET BALANCE</div>
+      <div id="w-balance" style="font-size:54px;font-weight:900;color:#ffffff;font-family:'Orbitron',monospace;text-shadow:0 0 30px rgba(0,230,118,0.3)">KSh 0</div>
+      <div id="w-pending" style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:6px"></div>
+      <div style="display:flex;gap:10px;margin-top:18px">
+        <button class="btn btn-primary" style="font-size:16px;padding:14px;font-weight:900" onclick="openModal('modal-deposit')">📥 DEPOSIT</button>
+        <button class="btn btn-red" style="font-size:16px;padding:14px;font-weight:900" onclick="openModal('modal-withdraw')">📤 WITHDRAW</button>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
+      <div class="card" style="text-align:center">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:6px;font-weight:700;letter-spacing:1px">GAMES</div>
+        <div id="stat-games" style="font-size:36px;color:var(--blue);font-family:'Orbitron',monospace;font-weight:900">0</div>
+      </div>
+      <div class="card" style="text-align:center">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:6px;font-weight:700;letter-spacing:1px">WINS</div>
+        <div id="stat-wins" style="font-size:36px;color:var(--gold);font-family:'Orbitron',monospace;font-weight:900">0</div>
+      </div>
+      <div class="card" style="text-align:center">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:6px;font-weight:700;letter-spacing:1px">PROFIT</div>
+        <div id="stat-profit" style="font-size:36px;color:var(--green);font-family:'Orbitron',monospace;font-weight:900">0</div>
+      </div>
+    </div>
+
+    <!-- Play mode selector -->
+    <div class="card" style="margin-bottom:16px">
+      <div style="font-size:14px;color:var(--muted);letter-spacing:1px;margin-bottom:10px;font-weight:700">SELECT MODE</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <button class="btn btn-gold" style="padding:16px 10px;font-size:15px;font-weight:900" onclick="openModal('modal-join')">🤖 VS BOTS</button>
+        <button class="btn btn-primary" style="padding:16px 10px;font-size:15px;font-weight:900" onclick="openModal('modal-mp')">👥 MULTIPLAYER</button>
+      </div>
+      <button onclick="startPracticeQuick()" style="width:100%;padding:12px;border-radius:12px;border:2px dashed rgba(0,176,255,0.4);background:rgba(0,176,255,0.05);color:var(--blue);font-family:'Share Tech Mono',monospace;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:1px;transition:all 0.2s"
+        onmouseover="this.style.background='rgba(0,176,255,0.1)'" onmouseout="this.style.background='rgba(0,176,255,0.05)'">
+        🎮 FREE PRACTICE — No real money
+      </button>
+    </div>
+
+    <div class="card">
+      <div style="font-size:14px;color:var(--muted);letter-spacing:2px;margin-bottom:12px;font-weight:700">RECENT TRANSACTIONS</div>
+      <div id="tx-list">
+        <div style="text-align:center;color:var(--muted);font-size:12px;padding:20px 0">No transactions yet</div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <button class="nav-item active" onclick="showWallet()"><span class="nav-icon">🏆</span>ARENA</button>
+    <button class="nav-item" onclick="openModal('modal-mp')"><span class="nav-icon">👥</span>LOBBY</button>
+    <button class="nav-item" onclick="showLeaderboard()"><span class="nav-icon">🏆</span>RANKS</button>
+    <button class="nav-item" id="nav-admin" style="display:none" onclick="showAdmin()"><span class="nav-icon">⚙️</span>ADMIN</button>
+  </nav>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!--  SCREEN: LOBBY (real multiplayer)              -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="s-lobby" class="screen">
+  <div class="top-bar">
+    <div style="display:flex;align-items:center;gap:8px">
+      <span class="logo-sm">🏆</span>
+      <span id="lobby-id-badge" class="badge badge-gold">ROOM: ----</span>
+      <span id="lobby-live" class="badge badge-live">● LIVE</span>
+    </div>
+    <button class="btn btn-outline" style="padding:5px 10px;font-size:11px" onclick="leaveLobby()">✕ LEAVE</button>
+  </div>
+
+  <div style="padding:16px;max-width:480px;margin:0 auto;padding-bottom:20px">
+    <div style="background:linear-gradient(135deg,#0d1f3c,#0a1628,#1a0d0d);border:1px solid var(--border2);border-radius:14px;padding:14px;margin-bottom:14px;text-align:center">
+      <div style="font-size:10px;color:var(--muted2);margin-bottom:4px">POT</div>
+      <div id="lobby-pot" style="font-size:28px;color:var(--gold);font-family:'Orbitron',monospace;text-shadow:0 0 20px rgba(255,214,0,0.4)">KSh 0</div>
+      <div id="lobby-entry-info" style="font-size:11px;color:var(--muted2);margin-top:4px">Entry: KSh 0 · Rounds: 5</div>
+    </div>
+
+    <div style="font-size:11px;color:var(--muted);letter-spacing:1px;margin-bottom:10px">PLAYERS IN ROOM</div>
+    <div id="lobby-players"></div>
+
+    <div id="lobby-waiting" style="text-align:center;padding:20px;color:var(--muted);font-size:12px">
+      <div class="spinner" style="margin-bottom:12px"></div>
+      Waiting for players… Share room code!
+    </div>
+    <div id="lobby-share" style="background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:12px;margin-bottom:14px;display:none">
+      <div style="font-size:10px;color:var(--muted);margin-bottom:6px">SHARE THIS CODE</div>
+      <div id="lobby-code-display" style="font-size:28px;color:var(--green);font-family:'Orbitron',monospace;letter-spacing:8px;text-align:center"></div>
+    </div>
+
+    <button id="lobby-start-btn" class="btn btn-gold" onclick="startMpGame()" style="display:none">🚀 START GAME</button>
+    <div id="lobby-ready-msg" style="text-align:center;font-size:12px;color:var(--muted);margin-top:10px"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!--  SCREEN: GAME                                  -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="s-game" class="screen">
+  <div class="top-bar">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="logo-sm">🏆</span>
+      <span id="g-round-badge" class="badge badge-gold">ROUND 1/5</span>
+      <span id="g-pot-badge" class="badge badge-green">POT: KSh 0</span>
+      <span id="g-mode-badge" class="badge badge-muted">BOT</span>
+    </div>
+    <svg id="g-timer-svg" width="46" height="46" viewBox="0 0 46 46">
+      <circle cx="23" cy="23" r="19" fill="none" stroke="var(--border2)" stroke-width="3.5"/>
+      <circle id="g-arc" cx="23" cy="23" r="19" fill="none" stroke="var(--green)" stroke-width="3.5"
+        stroke-dasharray="119.4" stroke-dashoffset="0" stroke-linecap="round" transform="rotate(-90 23 23)"
+        style="transition:stroke-dashoffset 0.9s linear,stroke 0.3s"/>
+      <text id="g-timer-txt" x="23" y="28" text-anchor="middle" fill="var(--green)" font-size="12" font-weight="700" font-family="monospace">30</text>
+    </svg>
+  </div>
+
+  <div id="g-leaders" style="display:flex;gap:8px;padding:8px 12px;overflow-x:auto;border-bottom:1px solid var(--border);background:var(--card)"></div>
+
+  <div id="g-invest" style="padding:14px 12px;padding-bottom:80px">
+    <div style="font-size:16px;font-family:'Orbitron',monospace;color:var(--gold);margin-bottom:4px">CHOOSE MARKET</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:14px">Your stake: <b id="g-stake-display" style="color:var(--green)">KSh 0</b></div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:16px" id="g-markets"></div>
+    <div id="g-amount-panel" style="display:none" class="card">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;letter-spacing:1px">INVEST AMOUNT</div>
+      <input id="g-slider" type="range" min="5" max="100" step="5" value="50" oninput="updateSlider()"/>
+      <div id="g-amount-val" style="text-align:center;font-size:28px;font-weight:900;color:var(--green);font-family:'Orbitron',monospace;margin:6px 0 10px">KSh 50</div>
+      <div style="display:flex;gap:6px;margin-bottom:12px">
+        <button class="pct-btn" onclick="setPct(0.25)">25%</button>
+        <button class="pct-btn" onclick="setPct(0.5)">50%</button>
+        <button class="pct-btn" onclick="setPct(0.75)">75%</button>
+        <button class="pct-btn" onclick="setPct(1)">ALL IN 🔥</button>
+      </div>
+      <button class="btn btn-primary" id="g-invest-btn" onclick="resolveRound()">✅ LOCK IN BET</button>
+    </div>
+    <div id="g-no-choice" style="text-align:center;color:var(--muted);font-size:12px;margin-top:10px">Pick a market — timer auto-skips if idle</div>
+  </div>
+
+  <div id="g-reveal" style="display:none;padding:14px 12px;padding-bottom:80px">
+    <div id="g-reveal-title" style="font-size:16px;font-family:'Orbitron',monospace;color:var(--gold);margin-bottom:12px">ROUND RESULTS</div>
+    <div id="g-results-list"></div>
+    <div style="text-align:center;color:var(--muted);font-size:11px;margin-top:8px">Next round starting…</div>
+  </div>
+
+  <div style="background:var(--bg2);border-top:1px solid var(--border);padding:10px 12px;max-height:140px;overflow-y:auto;position:fixed;bottom:0;left:0;right:0;z-index:10">
+    <div style="font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:4px">LIVE LOG</div>
+    <div id="g-log"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!--  SCREEN: RESULTS                               -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="s-results" class="screen">
+  <div style="padding:28px 16px;max-width:480px;margin:0 auto;padding-bottom:80px">
+    <div id="r-title" style="font-size:34px;font-family:'Orbitron',monospace;text-align:center;color:var(--gold);margin-bottom:6px">GAME OVER</div>
+    <div id="r-sub" style="font-size:12px;text-align:center;color:var(--muted);margin-bottom:8px"></div>
+    <div id="r-payout" style="text-align:center;margin-bottom:24px"></div>
+    <div id="r-board"></div>
+    <button class="btn btn-primary" style="margin-top:20px" onclick="showWallet()">💰 BACK TO WALLET</button>
+    <button class="btn btn-gold" style="margin-top:10px" onclick="isPracticeMode=false;setGameMode&&setGameMode('real');openModal('modal-join')">🚀 PLAY VS BOTS (REAL)</button>
+    <button style="width:100%;margin-top:10px;padding:14px;border-radius:12px;border:2px dashed rgba(0,176,255,0.4);background:rgba(0,176,255,0.05);color:var(--blue);font-family:'Share Tech Mono',monospace;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:1px" onclick="startPracticeQuick()">🎮 PLAY AGAIN — FREE PRACTICE</button>
+    <button class="btn btn-primary" style="margin-top:10px;background:linear-gradient(135deg,#0077b6,#00b0ff);color:#fff" onclick="openModal('modal-mp')">👥 PLAY MULTIPLAYER</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!--  SCREEN: LEADERBOARD                           -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="s-leaderboard" class="screen">
+  <div class="top-bar">
+    <span class="logo-sm">🏆 LEADERBOARD</span>
+    <button class="btn btn-outline" style="padding:5px 10px;font-size:11px" onclick="showWallet()">← BACK</button>
+  </div>
+  <div style="padding:16px;max-width:480px;margin:0 auto">
+    <div id="lb-list" style="margin-top:8px"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!--  SCREEN: ADMIN                                 -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="s-admin" class="screen">
+  <div class="top-bar">
+    <span class="logo-sm">⚙️ ADMIN</span>
+    <button class="btn btn-outline" style="padding:5px 10px;font-size:11px" onclick="showWallet()">← BACK</button>
+  </div>
+  <div style="padding:16px;max-width:600px;margin:0 auto;padding-bottom:40px">
+    <!-- Stats bar -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
+      <div class="card" style="text-align:center">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:4px">TOTAL USERS</div>
+        <div id="adm-users" style="font-size:22px;color:var(--green);font-family:'Orbitron',monospace">0</div>
+      </div>
+      <div class="card" style="text-align:center">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:4px">TOTAL BALANCE</div>
+        <div id="adm-bal" style="font-size:14px;color:var(--gold);font-family:'Orbitron',monospace">KSh 0</div>
+      </div>
+      <div class="card" style="text-align:center">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:4px">GAMES PLAYED</div>
+        <div id="adm-games" style="font-size:22px;color:var(--green);font-family:'Orbitron',monospace">0</div>
+      </div>
+    </div>
+
+    <!-- Credit / Debit tool -->
+    <div class="card" style="margin-bottom:16px">
+      <div style="font-size:12px;color:var(--muted);letter-spacing:1px;margin-bottom:12px">CREDIT / DEBIT PLAYER</div>
+      <div style="margin-bottom:10px">
+        <label>PHONE (without +254)</label>
+        <input id="adm-phone" class="inp" type="tel" placeholder="7XX XXX XXX"/>
+      </div>
+      <div style="margin-bottom:10px">
+        <label>AMOUNT (negative to debit)</label>
+        <input id="adm-amount" class="inp" type="number" placeholder="e.g. 500 or -200"/>
+      </div>
+      <div style="margin-bottom:12px">
+        <label>NOTE</label>
+        <input id="adm-note" class="inp" type="text" placeholder="Admin adjustment"/>
+      </div>
+      <button class="btn btn-primary" onclick="adminCredit()">⚡ APPLY CREDIT/DEBIT</button>
+      <div id="adm-credit-status" style="margin-top:8px;font-size:11px;text-align:center"></div>
+    </div>
+
+    <!-- Freeze toggle -->
+    <div class="card" style="margin-bottom:16px">
+      <div style="font-size:12px;color:var(--muted);letter-spacing:1px;margin-bottom:12px">FREEZE / UNFREEZE ACCOUNT</div>
+      <div style="margin-bottom:10px">
+        <label>PHONE</label>
+        <input id="adm-freeze-phone" class="inp" type="tel" placeholder="7XX XXX XXX"/>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <button class="btn btn-red" onclick="adminFreeze(true)">🔒 FREEZE</button>
+        <button class="btn btn-primary" onclick="adminFreeze(false)">🔓 UNFREEZE</button>
+      </div>
+      <div id="adm-freeze-status" style="margin-top:8px;font-size:11px;text-align:center"></div>
+    </div>
+
+    <!-- All players table -->
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div style="font-size:12px;color:var(--muted);letter-spacing:1px">ALL PLAYERS</div>
+        <button class="btn btn-outline" style="padding:4px 10px;font-size:10px" onclick="loadAdminData()">⟳ REFRESH</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>NAME</th><th>PHONE</th><th>BALANCE</th><th>GAMES</th><th>WINS</th><th>STATUS</th>
+            </tr>
+          </thead>
+          <tbody id="adm-table"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!--  MODALS                                        -->
+<!-- ══════════════════════════════════════════════ -->
+
+<!-- DEPOSIT MODAL -->
+<div id="modal-deposit" class="modal-overlay hidden" onclick="closeModalBg(event,'modal-deposit')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2 style="font-size:16px;color:var(--green);margin-bottom:16px;letter-spacing:2px">📥 DEPOSIT VIA M-PESA</h2>
+    <div style="background:rgba(0,176,255,0.08);border:1px solid rgba(0,176,255,0.25);border-radius:10px;padding:12px;margin-bottom:16px;font-size:11px;color:var(--muted2);line-height:1.8">
+      <div style="color:var(--blue);font-weight:700;margin-bottom:6px;letter-spacing:1px">HOW TO DEPOSIT</div>
+      1. Enter amount below<br>2. Tap "REQUEST STK PUSH"<br>3. M-Pesa prompt appears on your phone<br>4. Enter your M-Pesa PIN<br>5. Balance updates instantly ✅
+    </div>
+    <div style="margin-bottom:14px">
+      <label>AMOUNT (Min KSh 50)</label>
+      <div class="inp-group">
+        <span class="inp-prefix">KSh</span>
+        <input id="dep-amount" class="inp has-prefix" type="number" placeholder="50" min="50" max="50000"/>
+      </div>
+    </div>
+    <div style="margin-bottom:16px">
+      <label>M-PESA PHONE</label>
+      <div class="inp-group">
+        <span class="inp-prefix">+254</span>
+        <input id="dep-phone" class="inp has-prefix" type="tel" placeholder="7XX XXX XXX" maxlength="9"/>
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:16px">
+      <button class="pct-btn" onclick="setDepAmt(50)">50</button>
+      <button class="pct-btn" onclick="setDepAmt(100)">100</button>
+      <button class="pct-btn" onclick="setDepAmt(500)">500</button>
+      <button class="pct-btn" onclick="setDepAmt(1000)">1K</button>
+    </div>
+    <button class="btn btn-primary" id="dep-btn" onclick="doDeposit()">📱 REQUEST STK PUSH</button>
+    <div id="dep-status" style="margin-top:12px;text-align:center;font-size:12px"></div>
+    <div style="margin-top:16px;background:rgba(255,214,0,0.05);border:1px solid rgba(255,214,0,0.2);border-radius:10px;padding:12px;font-size:10px;color:var(--muted)">
+      <span id="dep-mode-note"><b style="color:var(--gold)">⚠️ DEMO MODE:</b> Real M-Pesa STK push requires Daraja API credentials on your backend. Set <code style="color:var(--green)">MPESA_BACKEND</code> in CONFIG.</span>
+    </div>
+  </div>
+</div>
+
+<!-- WITHDRAW MODAL -->
+<div id="modal-withdraw" class="modal-overlay hidden" onclick="closeModalBg(event,'modal-withdraw')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2 style="font-size:16px;color:var(--red);margin-bottom:16px;letter-spacing:2px">📤 WITHDRAW TO M-PESA</h2>
+    <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:12px;margin-bottom:16px;text-align:center">
+      <div style="font-size:10px;color:var(--muted);margin-bottom:4px">AVAILABLE TO WITHDRAW</div>
+      <div id="wd-bal" style="font-size:26px;color:var(--green);font-family:'Orbitron',monospace">KSh 0</div>
+    </div>
+    <div style="margin-bottom:14px">
+      <label>WITHDRAW AMOUNT (Min KSh 50)</label>
+      <div class="inp-group">
+        <span class="inp-prefix">KSh</span>
+        <input id="wd-amount" class="inp has-prefix" type="number" placeholder="50" min="50"/>
+      </div>
+    </div>
+    <div style="margin-bottom:14px">
+      <label>M-PESA PHONE (Receives Money)</label>
+      <div class="inp-group">
+        <span class="inp-prefix">+254</span>
+        <input id="wd-phone" class="inp has-prefix" type="tel" placeholder="7XX XXX XXX" maxlength="9"/>
+      </div>
+    </div>
+    <div style="margin-bottom:16px">
+      <label>YOUR PIN</label>
+      <input id="wd-pin" class="inp" type="password" placeholder="4-digit PIN" maxlength="4" inputmode="numeric"/>
+    </div>
+    <button class="btn btn-red" id="wd-btn" onclick="doWithdraw()">💸 WITHDRAW NOW</button>
+    <div id="wd-status" style="margin-top:12px;text-align:center;font-size:12px"></div>
+    <div style="margin-top:16px;background:rgba(255,214,0,0.05);border:1px solid rgba(255,214,0,0.2);border-radius:10px;padding:12px;font-size:10px;color:var(--muted)">
+      <b style="color:var(--gold)">⚠️ DEMO MODE:</b> Real withdrawals use Safaricom B2C API. Set <code style="color:var(--green)">MPESA_BACKEND</code> in CONFIG.
+    </div>
+  </div>
+</div>
+
+<!-- JOIN GAME (BOT) MODAL -->
+<div id="modal-join" class="modal-overlay hidden" onclick="closeModalBg(event,'modal-join')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2 style="font-size:16px;color:var(--gold);margin-bottom:10px;letter-spacing:2px">🤖 VS BOTS</h2>
+
+    <!-- Mode toggle -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+      <button id="mode-real-btn" onclick="setGameMode('real')"
+        style="padding:12px 8px;border-radius:12px;border:2px solid var(--gold);background:rgba(255,214,0,0.1);color:var(--gold);font-family:'Share Tech Mono',monospace;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:1px;transition:all 0.2s">
+        💰 REAL MONEY
+      </button>
+      <button id="mode-practice-btn" onclick="setGameMode('practice')"
+        style="padding:12px 8px;border-radius:12px;border:2px solid var(--border2);background:transparent;color:var(--muted2);font-family:'Share Tech Mono',monospace;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:1px;transition:all 0.2s">
+        🎮 FREE PRACTICE
+      </button>
+    </div>
+
+    <!-- Real money panel -->
+    <div id="join-real-panel">
+      <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:12px;margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+          <span style="font-size:11px;color:var(--muted)">YOUR BALANCE</span>
+          <span id="join-balance" style="color:var(--green);font-size:13px;font-weight:700">KSh 0</span>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <span style="font-size:11px;color:var(--muted)">AFTER ENTRY</span>
+          <span id="join-after" style="color:var(--muted);font-size:13px">KSh 0</span>
+        </div>
+      </div>
+      <div style="margin-bottom:14px">
+        <label>ENTRY FEE</label>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+          <button class="pct-btn" id="ef-10" onclick="selectEntry(10)">KSh 10</button>
+          <button class="pct-btn" id="ef-50" onclick="selectEntry(50)">KSh 50</button>
+          <button class="pct-btn" id="ef-100" onclick="selectEntry(100)">KSh 100</button>
+          <button class="pct-btn" id="ef-500" onclick="selectEntry(500)">KSh 500</button>
+        </div>
+      </div>
+      <div style="background:rgba(255,214,0,0.06);border:1px solid rgba(255,214,0,0.3);border-radius:10px;padding:12px;margin-bottom:16px;text-align:center">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:4px">WINNER'S POT (after 10% fee)</div>
+        <div id="join-pot-val" style="font-size:22px;color:var(--gold);font-family:'Orbitron',monospace">KSh 0</div>
+      </div>
+    </div>
+
+    <!-- Practice panel -->
+    <div id="join-practice-panel" style="display:none">
+      <div style="background:rgba(0,176,255,0.07);border:1px solid rgba(0,176,255,0.3);border-radius:12px;padding:14px;margin-bottom:14px">
+        <div style="font-size:13px;color:var(--blue);font-weight:700;margin-bottom:6px;letter-spacing:1px">🎓 FREE PRACTICE MODE</div>
+        <div style="font-size:11px;color:var(--muted2);line-height:1.7">
+          ✅ No real money used<br>
+          ✅ No balance deducted<br>
+          ✅ Practice market picks freely<br>
+          ✅ Results don't affect your stats
+        </div>
+      </div>
+      <div style="background:rgba(0,230,118,0.06);border:1px solid rgba(0,230,118,0.2);border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:11px;color:var(--muted)">PRACTICE CHIPS</span>
+        <span style="font-size:18px;color:var(--green);font-family:'Orbitron',monospace;font-weight:900">KSh 1,000</span>
+      </div>
+    </div>
+
+    <!-- Shared settings -->
+    <div style="margin-bottom:14px">
+      <label>AI OPPONENTS: <b id="join-bots-val" style="color:var(--green)">3</b></label>
+      <input type="range" min="1" max="5" value="3" oninput="document.getElementById('join-bots-val').textContent=this.value;joinBots=+this.value"/>
+    </div>
+    <div style="margin-bottom:20px">
+      <label>ROUNDS: <b id="join-rounds-val" style="color:var(--green)">5</b></label>
+      <input type="range" min="3" max="10" value="5" oninput="document.getElementById('join-rounds-val').textContent=this.value;joinRounds=+this.value"/>
+    </div>
+
+    <button class="btn btn-gold" id="join-btn" onclick="doJoinGame()">🚀 JOIN & PLAY</button>
+    <div id="join-err" style="color:var(--red);font-size:11px;text-align:center;margin-top:8px"></div>
+  </div>
+</div>
+
+<!-- MULTIPLAYER MODAL -->
+<div id="modal-mp" class="modal-overlay hidden" onclick="closeModalBg(event,'modal-mp')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2 style="font-size:16px;color:var(--green);margin-bottom:6px;letter-spacing:2px">👥 MULTIPLAYER</h2>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:16px">Play vs real people for real KSh!</div>
+
+    <div class="tabs" id="mp-tabs">
+      <button class="tab active" onclick="switchMpTab('create')">CREATE ROOM</button>
+      <button class="tab" onclick="switchMpTab('join')">JOIN ROOM</button>
+    </div>
+
+    <!-- CREATE -->
+    <div id="mp-create">
+      <div style="margin-bottom:14px">
+        <label>ENTRY FEE</label>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+          <button class="pct-btn" id="mp-ef-10" onclick="selectMpEntry(10)">KSh 10</button>
+          <button class="pct-btn" id="mp-ef-50" onclick="selectMpEntry(50)">KSh 50</button>
+          <button class="pct-btn" id="mp-ef-100" onclick="selectMpEntry(100)">KSh 100</button>
+          <button class="pct-btn" id="mp-ef-500" onclick="selectMpEntry(500)">KSh 500</button>
+        </div>
+      </div>
+      <div style="margin-bottom:14px">
+        <label>MAX PLAYERS: <b id="mp-max-val" style="color:var(--green)">4</b></label>
+        <input type="range" min="2" max="6" value="4" oninput="document.getElementById('mp-max-val').textContent=this.value;mpMaxPlayers=+this.value"/>
+      </div>
+      <div style="margin-bottom:20px">
+        <label>ROUNDS: <b id="mp-rounds-val" style="color:var(--green)">5</b></label>
+        <input type="range" min="3" max="10" value="5" oninput="document.getElementById('mp-rounds-val').textContent=this.value;mpRounds=+this.value"/>
+      </div>
+      <button class="btn btn-primary" onclick="createRoom()">🏠 CREATE ROOM</button>
+      <div id="mp-create-err" style="color:var(--red);font-size:11px;text-align:center;margin-top:8px"></div>
+    </div>
+
+    <!-- JOIN -->
+    <div id="mp-join" style="display:none">
+      <div style="margin-bottom:16px">
+        <label>ROOM CODE (4 digits)</label>
+        <input id="mp-room-code" class="inp" type="tel" placeholder="e.g. 4821" maxlength="4" inputmode="numeric"
+          style="font-size:28px;text-align:center;letter-spacing:8px"/>
+      </div>
+      <button class="btn btn-primary" onclick="joinRoom()">🚪 JOIN ROOM</button>
+      <div id="mp-join-err" style="color:var(--red);font-size:11px;text-align:center;margin-top:8px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" style="position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--card2);border:1px solid var(--green);border-radius:10px;padding:10px 20px;font-size:12px;color:var(--green);z-index:300;display:none;white-space:nowrap;backdrop-filter:blur(12px);box-shadow:0 4px 20px rgba(0,0,0,0.5)"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+//  ██████╗ ██████╗ ███╗   ██╗███████╗██╗ ██████╗
+// ██╔════╝██╔═══██╗████╗  ██║██╔════╝██║██╔════╝
+// ██║     ██║   ██║██╔██╗ ██║█████╗  ██║██║  ███╗
+// ██║     ██║   ██║██║╚██╗██║██╔══╝  ██║██║   ██║
+// ╚██████╗╚██████╔╝██║ ╚████║██║     ██║╚██████╔╝
+//  ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝     ╚═╝ ╚═════╝
+// ═══════════════════════════════════════════════════════════════════
+//
+// ══════════════════════════════════════════════════════════
+//  HOW TO CONNECT FIREBASE REALTIME DATABASE
+// ══════════════════════════════════════════════════════════
+//
+//  STEP 1 — Create Firebase Project
+//  ─────────────────────────────────
+//  1. Go to: https://console.firebase.google.com
+//  2. Click "Add project" → name it (e.g. "jackpot-arena")
+//  3. Disable Google Analytics (not needed) → Create project
+//
+//  STEP 2 — Add a Web App
+//  ───────────────────────
+//  1. On project overview, click the </> Web icon
+//  2. Register app name (e.g. "jackpot-web") → Register App
+//  3. Firebase will show you a config object like this:
+//
+//     const firebaseConfig = {
+//       apiKey: "AIzaSy...",
+//       authDomain: "jackpot-arena-xxxxx.firebaseapp.com",
+//       databaseURL: "https://jackpot-arena-xxxxx-default-rtdb.firebaseio.com",
+//       projectId: "jackpot-arena-xxxxx",
+//       storageBucket: "jackpot-arena-xxxxx.appspot.com",
+//       messagingSenderId: "123456789",
+//       appId: "1:123456789:web:abc123"
+//     };
+//
+//  4. Copy those values into the CONFIG.FIREBASE block below
+//
+//  STEP 3 — Enable Realtime Database
+//  ────────────────────────────────────
+//  1. Left sidebar → Build → Realtime Database
+//  2. Click "Create Database"
+//  3. Choose location: europe-west1 (closest to Kenya) or us-central1
+//  4. Start in TEST MODE (rules allow read/write for 30 days)
+//  5. Click "Enable"
+//
+//  STEP 4 — Set Proper Security Rules
+//  ─────────────────────────────────────
+//  In Realtime Database → Rules tab, paste this:
+//
+//  {
+//    "rules": {
+//      "users": {
+//        "$phone": {
+//          ".read": "auth == null || $phone === auth.uid",
+//          ".write": "auth == null || $phone === auth.uid"
+//        }
+//      },
+//      "rooms": {
+//        ".read": true,
+//        ".write": true
+//      },
+//      "leaderboard": {
+//        ".read": true,
+//        ".write": true
+//      }
+//    }
+//  }
+//
+//  NOTE: For production, tighten rules. The above allows open access
+//  for now — fine for testing / small deploys.
+//
+//  STEP 5 — Paste your config below and save the file
+//  ────────────────────────────────────────────────────
+//  Replace every "YOUR_..." value with your actual Firebase values.
+//  Once done, reload the app — the status bar will show ✅ connected.
+//
+// ══════════════════════════════════════════════════════════
+
+const CONFIG = {
+  // ── FIREBASE — paste your values here ─────────────────────────────
+  FIREBASE: {
+    apiKey:            "AIzaSyC50ClAqd6B8sXmHHCNr8WWmbBsHOIsKfU",
+    authDomain:        "jackpot-arena-99316.firebaseapp.com",
+    databaseURL:       "https://jackpot-arena-99316-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId:         "jackpot-arena-99316",
+    storageBucket:     "jackpot-arena-99316.firebasestorage.app",
+    messagingSenderId: "847344861118",
+    appId:             "1:847344861118:web:550bd08da16b456d5dc3ef"
+  },
+
+  // ── M-PESA DARAJA ─────────────────────────────────────────────────
+  // STEP 1: Deploy the mpesa-backend folder to Railway or Render
+  // STEP 2: Paste your deployed URL below (NO trailing slash)
+  // STEP 3: Set DEMO_MODE to false
+  // Example: "https://jackpot-mpesa.railway.app/api"
+  MPESA_BACKEND: "https://jackpotarena.onrender.com",
+  DEMO_MODE: false,
+
+  // ── ADMIN ─────────────────────────────────────────────────────────
+  ADMIN_PHONES: ["724850318"],
+
+  // ── GAME ──────────────────────────────────────────────────────────
+  PLATFORM_FEE: 0.10,
+  MIN_DEPOSIT:  50,
+  MIN_WITHDRAW: 50,
+};
+
+// ═══════════════════════════════════════════════
+// FIREBASE INIT
+// ═══════════════════════════════════════════════
+let db = null;
+let fbReady = false;
+
+function initFirebase(){
+  const statusEl = document.getElementById('fb-status');
+
+  // Check if Firebase SDK scripts actually loaded
+  if(typeof firebase === 'undefined'){
+    statusEl.innerHTML = '⚠️ Firebase SDK failed to load — check internet connection';
+    statusEl.style.color = 'var(--gold)';
+    fbReady = false;
+    // Still try local session
+    const saved = localLoadUser();
+    if(saved && !currentUser){ currentUser = saved; showWallet(); }
+    return;
+  }
+
+  try {
+    if(CONFIG.FIREBASE.apiKey === "YOUR_API_KEY"){
+      statusEl.innerHTML = '⚠️ Firebase not configured — tap here for setup guide';
+      statusEl.style.color = 'var(--gold)';
+      statusEl.style.cursor = 'pointer';
+      statusEl.onclick = showFirebaseGuide;
+      fbReady = false;
+      // Fall through to local session
+      const saved = localLoadUser();
+      if(saved && !currentUser){ currentUser = saved; showWallet(); }
+      return;
+    }
+
+    if(!CONFIG.FIREBASE.databaseURL || CONFIG.FIREBASE.databaseURL.includes("YOUR_PROJECT")){
+      statusEl.innerHTML = '❌ databaseURL missing — check your Firebase config';
+      statusEl.style.color = 'var(--red)';
+      fbReady = false;
+      return;
+    }
+
+    // Check if already initialized (prevents duplicate app error on reload)
+    if(!firebase.apps.length){
+      firebase.initializeApp(CONFIG.FIREBASE);
+    }
+    db = firebase.database();
+
+    // Test live connection
+    statusEl.innerHTML = '<span style="color:var(--gold)">⏳ Connecting to Firebase…</span>';
+
+    db.ref('.info/connected').on('value', snap => {
+      if(snap.val() === true){
+        fbReady = true;
+        statusEl.innerHTML = '<span style="color:var(--green)">✅ Firebase connected — realtime sync active</span>';
+        statusEl.onclick = null;
+        statusEl.style.cursor = 'default';
+        // Auto-login if session saved
+        const saved = localLoadUser();
+        if(saved && !currentUser){ currentUser = saved; showWallet(); }
+      } else {
+        if(fbReady){
+          // Was connected, now dropped
+          fbReady = false;
+          statusEl.innerHTML = '<span style="color:var(--gold)">⚠️ Firebase reconnecting…</span>';
+        }
+      }
+    });
+
+  } catch(e){
+    console.warn("Firebase init failed:", e.message);
+    fbReady = false;
+    statusEl.innerHTML = '❌ Firebase error: ' + e.message.slice(0,80);
+    statusEl.style.color = 'var(--red)';
+    // Fall back to local
+    const saved = localLoadUser();
+    if(saved && !currentUser){ currentUser = saved; showWallet(); }
+  }
+}
+
+function showFirebaseGuide(){
+  // Show an in-app guide modal
+  const existing = document.getElementById('fb-guide-overlay');
+  if(existing){ existing.remove(); return; }
+
+  const overlay = document.createElement('div');
+  overlay.id = 'fb-guide-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:500;overflow-y:auto;padding:24px 16px;';
+  overlay.innerHTML = `
+    <div style="max-width:480px;margin:0 auto">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <h2 style="font-family:'Orbitron',monospace;color:var(--gold);font-size:16px;letter-spacing:2px">🔥 FIREBASE SETUP</h2>
+        <button onclick="document.getElementById('fb-guide-overlay').remove()"
+          style="background:var(--card2);border:1px solid var(--border2);color:var(--text);border-radius:8px;padding:6px 12px;font-family:'Share Tech Mono',monospace;cursor:pointer;font-size:12px">✕ CLOSE</button>
+      </div>
+
+      ${[
+        ['1','CREATE PROJECT','Go to console.firebase.google.com → Add project → Name it "jackpot-arena" → Disable Analytics → Create project','https://console.firebase.google.com'],
+        ['2','ADD WEB APP','On project overview → click </> Web icon → Register app name (e.g. "jackpot-web") → copy the firebaseConfig values shown',null],
+        ['3','ENABLE REALTIME DATABASE','Left sidebar → Build → Realtime Database → Create Database → Choose "europe-west1" (near Kenya) → Start in TEST MODE → Enable',null],
+        ['4','SET SECURITY RULES','In Realtime Database → Rules tab → paste the rules from the comment at the top of this file\'s &lt;script&gt; block → Publish',null],
+        ['5','PASTE CONFIG','Open this HTML file in a text editor → find CONFIG.FIREBASE → replace each "YOUR_..." with your actual values → save → reload',null],
+      ].map(([num,title,desc,link])=>`
+        <div style="background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:14px;margin-bottom:12px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <div style="width:28px;height:28px;border-radius:50%;background:rgba(255,214,0,0.15);border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;color:var(--gold);font-size:12px;font-weight:900;flex-shrink:0">${num}</div>
+            <div style="font-family:'Share Tech Mono',monospace;color:var(--text);font-size:13px;font-weight:700;letter-spacing:1px">${title}</div>
+          </div>
+          <div style="font-size:11px;color:var(--muted2);line-height:1.7;margin-left:38px">${desc}</div>
+          ${link?`<div style="margin-left:38px;margin-top:8px"><a href="${link}" target="_blank" style="color:var(--blue);font-size:11px;font-family:'Share Tech Mono',monospace">→ Open Firebase Console</a></div>`:''}
+        </div>
+      `).join('')}
+
+      <div style="background:rgba(0,230,118,0.07);border:1px solid rgba(0,230,118,0.25);border-radius:12px;padding:14px;margin-bottom:16px">
+        <div style="font-size:12px;color:var(--green);font-weight:700;margin-bottom:6px;letter-spacing:1px">📋 YOUR CONFIG BLOCK (edit in file)</div>
+        <pre style="font-size:10px;color:var(--muted2);line-height:1.8;overflow-x:auto;white-space:pre-wrap">FIREBASE: {
+  apiKey:            "AIzaSy...",
+  authDomain:        "your-app.firebaseapp.com",
+  databaseURL:       "https://your-app-default-rtdb.firebaseio.com",
+  projectId:         "your-app",
+  storageBucket:     "your-app.appspot.com",
+  messagingSenderId: "123456789",
+  appId:             "1:123:web:abc"
+}</pre>
+      </div>
+
+      <div style="background:rgba(0,176,255,0.07);border:1px solid rgba(0,176,255,0.25);border-radius:12px;padding:12px;margin-bottom:20px">
+        <div style="font-size:11px;color:var(--blue);font-weight:700;margin-bottom:4px">💡 TIP</div>
+        <div style="font-size:11px;color:var(--muted2);line-height:1.7">
+          The Realtime Database URL always looks like:<br>
+          <code style="color:var(--green)">https://YOUR-APP-default-rtdb.firebaseio.com</code><br>
+          This is the most commonly missed field. Check it exists in your Firebase console under Realtime Database.
+        </div>
+      </div>
+
+      <button onclick="document.getElementById('fb-guide-overlay').remove()"
+        style="width:100%;padding:14px;border-radius:12px;background:linear-gradient(135deg,#f9a825,#ffd600);color:#1a0f00;font-family:'Share Tech Mono',monospace;font-size:14px;font-weight:700;border:none;cursor:pointer;letter-spacing:1px">
+        ✅ GOT IT — I'LL EDIT THE CONFIG
+      </button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+}
+
+// ═══════════════════════════════════════════════
+// GAME DATA
+// ═══════════════════════════════════════════════
+const MARKETS = [
+  {id:"nse",   name:"NSE Stocks",    icon:"📈", color:"#00e676", min:-0.05, max:0.60},
+  {id:"forex", name:"USD/KES",       icon:"💱", color:"#ffd600", min:0.02,  max:0.35},
+  {id:"mpesa", name:"M-Pesa Lipa",   icon:"📱", color:"#00c853", min:0.05,  max:0.15},
+  {id:"matatu",name:"Matatu SACCO",  icon:"🚌", color:"#f50057", min:0.00,  max:0.45},
+  {id:"chama", name:"Chama Fund",    icon:"🤝", color:"#d500f9", min:0.08,  max:0.20},
+  {id:"crypto",name:"Bitcoin KES",   icon:"₿",  color:"#ff6d00", min:-0.10, max:0.90},
+];
+const BOT_NAMES   = ["Wanjiku","Otieno","Aisha","Kipchoge","Fatuma"];
+const BOT_AVATARS = ["👩🏾","👨🏽","👩🏿","🧔🏾","👩🏽"];
+const BOT_STRATS  = ["aggressive","conservative","balanced","aggressive","conservative"];
+
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+let currentUser   = null;
+let gameState     = null;
+let timerInt      = null;
+let timerSecs     = 30;
+let chosenMkt     = null;
+let investAmt     = 50;
+let gameLog       = [];
+let joinBots      = 3;
+let joinRounds    = 5;
+let selectedEntry = 50;
+let mpEntry       = 50;
+let mpMaxPlayers  = 4;
+let mpRounds      = 5;
+let currentRoomId = null;
+let roomListener  = null;
+let isMultiplayer = false;
+
+// ═══════════════════════════════════════════════
+// LOCAL STORAGE (fallback when Firebase not set)
+// ═══════════════════════════════════════════════
+function localSaveUser(u){ localStorage.setItem('pesaUser', JSON.stringify(u)); }
+function localLoadUser(){ const u=localStorage.getItem('pesaUser'); return u?JSON.parse(u):null; }
+function localGetByPhone(ph){ const all=JSON.parse(localStorage.getItem('pesaUsers')||'{}'); return all[ph]||null; }
+function localSaveRecord(u){ const all=JSON.parse(localStorage.getItem('pesaUsers')||'{}'); all[u.phone]=u; localStorage.setItem('pesaUsers',JSON.stringify(all)); }
+
+// ═══════════════════════════════════════════════
+// FIREBASE HELPERS
+// ═══════════════════════════════════════════════
+async function fbGetUser(phone){
+  if(!fbReady) return localGetByPhone(phone);
+  const snap = await db.ref('users/'+phone).once('value');
+  return snap.val();
+}
+async function fbSaveUser(u){
+  if(!fbReady){ localSaveRecord(u); localSaveUser(u); return; }
+  await db.ref('users/'+u.phone).set(u);
+  localSaveUser(u); // keep local session
+}
+async function fbGetAllUsers(){
+  if(!fbReady){
+    const all = JSON.parse(localStorage.getItem('pesaUsers')||'{}');
+    return Object.values(all);
+  }
+  const snap = await db.ref('users').once('value');
+  const data = snap.val()||{};
+  return Object.values(data);
+}
+
+// ═══════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════
+function fmt(n){ return "KSh "+Math.round(n).toLocaleString("en-KE"); }
+function pct(n){ return (n>=0?"+":"")+(n*100).toFixed(1)+"%"; }
+function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function roomCode(){ return String(Math.floor(1000+Math.random()*9000)); }
+function getRet(m){ const r=(Math.random()+Math.random())/2; return m.min+r*(m.max-m.min); }
+function botPick(strat){
+  if(strat==="conservative"){ const s=MARKETS.filter(m=>m.max<0.15); return s[Math.floor(Math.random()*s.length)]||MARKETS[2]; }
+  if(strat==="aggressive"){   const s=MARKETS.filter(m=>m.max>=0.35); return s[Math.floor(Math.random()*s.length)]||MARKETS[0]; }
+  return MARKETS[Math.floor(Math.random()*MARKETS.length)];
+}
+function toast(msg, color="var(--green)"){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.style.color=color; t.style.borderColor=color; t.style.display='block';
+  setTimeout(()=>t.style.display='none', 3000);
+}
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function openModal(id){ document.getElementById(id).classList.remove('hidden'); }
+function closeModal(id){ document.getElementById(id).classList.add('hidden'); }
+function closeModalBg(e,id){ if(e.target.classList.contains('modal-overlay')) closeModal(id); }
+function isAdmin(){ return currentUser && CONFIG.ADMIN_PHONES.includes(currentUser.phone); }
+
+// ═══════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════
+function switchAuth(tab){
+  document.querySelectorAll('#auth-tabs .tab').forEach((t,i)=>t.classList.toggle('active',i===(tab==='login'?0:1)));
+  document.getElementById('auth-login').style.display   = tab==='login'  ?'block':'none';
+  document.getElementById('auth-register').style.display = tab==='register'?'block':'none';
+}
+
+async function doLogin(){
+  const phone = document.getElementById('login-phone').value.trim();
+  const pin   = document.getElementById('login-pin').value.trim();
+  if(phone.length<9||pin.length<4){ toast('Enter valid phone & 4-digit PIN','var(--red)'); return; }
+  let user = await fbGetUser(phone);
+  if(!user){
+    user={name:"Player_"+phone.slice(-3),phone,pin,balance:0,txs:[],stats:{games:0,wins:0,totalProfit:0},frozen:false};
+    await fbSaveUser(user);
+  }
+  if(user.pin!==pin){ toast('Wrong PIN','var(--red)'); return; }
+  if(user.frozen){ toast('Account frozen. Contact admin.','var(--red)'); return; }
+  currentUser=user; localSaveUser(user);
+  showWallet();
+}
+
+async function doRegister(){
+  const name  = document.getElementById('reg-name').value.trim();
+  const phone = document.getElementById('reg-phone').value.trim();
+  const pin   = document.getElementById('reg-pin').value.trim();
+  const pin2  = document.getElementById('reg-pin2').value.trim();
+  if(!name||phone.length<9){ toast('Enter name & valid phone','var(--red)'); return; }
+  if(pin.length<4||pin!==pin2){ toast('PINs must match & be 4 digits','var(--red)'); return; }
+  const existing = await fbGetUser(phone);
+  if(existing){ toast('Phone already registered. Login instead.','var(--red)'); return; }
+  const user={name,phone,pin,balance:0,txs:[],stats:{games:0,wins:0,totalProfit:0},frozen:false,created:Date.now()};
+  await fbSaveUser(user);
+  currentUser=user; localSaveUser(user);
+  toast('Account created! Welcome '+name);
+  showWallet();
+}
+
+function doLogout(){
+  // Detach any room listeners
+  if(roomListener){ roomListener(); roomListener=null; }
+  currentUser=null; localStorage.removeItem('pesaUser');
+  showScreen('s-auth');
+}
+
+// ═══════════════════════════════════════════════
+// WALLET
+// ═══════════════════════════════════════════════
+// Admin tap gesture
+let _adminTaps=0, _adminTimer=null;
+function adminTap(){
+  _adminTaps++;
+  clearTimeout(_adminTimer);
+  if(_adminTaps>=5){
+    _adminTaps=0;
+    if(isAdmin()){ showAdmin(); }
+    else { toast('Access denied — not an admin','var(--red)'); }
+    return;
+  }
+  _adminTimer=setTimeout(()=>_adminTaps=0,2000);
+}
+
+function showWallet(){
+  if(!currentUser){ showScreen('s-auth'); return; }
+  showScreen('s-wallet');
+  renderWallet();
+  // Show admin nav button if admin
+  const adminBtn = document.getElementById('nav-admin');
+  adminBtn.style.display = isAdmin() ? 'flex' : 'none';
+}
+
+function renderWallet(){
+  const u=currentUser;
+  document.getElementById('w-user-badge').textContent = u.name.split(' ')[0].toUpperCase();
+  document.getElementById('w-balance').textContent    = fmt(u.balance);
+  document.getElementById('wd-bal').textContent       = fmt(u.balance);
+  document.getElementById('join-balance').textContent = fmt(u.balance);
+  document.getElementById('stat-games').textContent   = u.stats.games;
+  document.getElementById('stat-wins').textContent    = u.stats.wins;
+  document.getElementById('stat-profit').textContent  = (u.stats.totalProfit>=0?'+':'')+Math.round(u.stats.totalProfit);
+
+  const txEl = document.getElementById('tx-list');
+  if(!u.txs||u.txs.length===0){
+    txEl.innerHTML='<div style="text-align:center;color:var(--muted);font-size:12px;padding:20px 0">No transactions yet</div>';
+    return;
+  }
+  txEl.innerHTML = u.txs.slice(0,10).map(tx=>`
+    <div class="tx-row">
+      <div class="tx-icon" style="background:${tx.type==='deposit'?'rgba(0,230,118,0.12)':tx.type==='withdraw'?'rgba(255,61,113,0.12)':tx.amount>=0?'rgba(255,214,0,0.12)':'rgba(255,61,113,0.12)'}">
+        ${tx.type==='deposit'?'📥':tx.type==='withdraw'?'📤':tx.amount>=0?'🏆':'🎮'}
+      </div>
+      <div style="flex:1">
+        <div style="font-size:16px;color:var(--text)">${tx.desc}</div>
+        <div style="font-size:13px;color:var(--muted)">${tx.time}</div>
+      </div>
+      <div style="font-weight:700;font-size:17px;color:${tx.amount>=0?'var(--green)':'var(--red)'}">
+        ${tx.amount>=0?'+':''}${fmt(tx.amount)}
+      </div>
+    </div>
+  `).join('');
+}
+
+function addTx(type,amount,desc){
+  const tx={type,amount,desc,time:new Date().toLocaleString('en-KE',{hour:'2-digit',minute:'2-digit',day:'numeric',month:'short'})};
+  currentUser.txs.unshift(tx);
+  currentUser.txs=currentUser.txs.slice(0,50);
+}
+
+// ═══════════════════════════════════════════════
+// M-PESA DEPOSIT (STK Push)
+// ═══════════════════════════════════════════════
+async function doDeposit(){
+  const amt   = +document.getElementById('dep-amount').value;
+  const phone = document.getElementById('dep-phone').value.trim();
+  if(amt<CONFIG.MIN_DEPOSIT){ toast('Minimum deposit is KSh '+CONFIG.MIN_DEPOSIT,'var(--red)'); return; }
+  if(phone.length<9){ toast('Enter valid M-Pesa number','var(--red)'); return; }
+
+  const btn    = document.getElementById('dep-btn');
+  const status = document.getElementById('dep-status');
+  btn.disabled=true; btn.textContent='⏳ Sending STK Push…';
+  status.innerHTML='<div style="color:var(--muted)">Waiting for M-Pesa prompt on +254'+phone+'…</div>';
+
+  if(!CONFIG.DEMO_MODE && CONFIG.MPESA_BACKEND !== "https://your-backend.com/api"){
+    // ── REAL M-PESA STK PUSH ──────────────────────────────────────
+    try {
+      const res = await fetch(CONFIG.MPESA_BACKEND+'/stk-push',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({phone:'254'+phone, amount:amt, accountRef:'JACKPOT', userId:currentUser.phone})
+      });
+      const data = await res.json();
+      if(data.ResponseCode==='0'){
+        status.innerHTML='<div style="color:var(--gold)">📱 STK Push sent! Enter your M-Pesa PIN on your phone…</div>';
+        pollDeposit(data.CheckoutRequestID, amt, btn, status);
+      } else {
+        status.innerHTML='<div style="color:var(--red)">❌ STK Push failed: '+data.CustomerMessage+'</div>';
+        btn.disabled=false; btn.textContent='📱 REQUEST STK PUSH';
+      }
+    } catch(e){
+      status.innerHTML='<div style="color:var(--red)">❌ Network error. Check backend URL.</div>';
+      btn.disabled=false; btn.textContent='📱 REQUEST STK PUSH';
+    }
+    return;
+  }
+
+  // ── DEMO SIMULATION ───────────────────────────────────────────────
+  setTimeout(()=>{
+    status.innerHTML='<div style="color:var(--gold)">📱 M-Pesa prompt sent! Enter your PIN…</div>';
+    setTimeout(async ()=>{
+      currentUser.balance+=amt;
+      addTx('deposit',amt,'M-Pesa Deposit via STK Push');
+      await fbSaveUser(currentUser);
+      status.innerHTML='<div style="color:var(--green)">✅ KSh '+amt+' deposited successfully!</div>';
+      btn.disabled=false; btn.textContent='📱 REQUEST STK PUSH';
+      renderWallet();
+      toast('💰 '+fmt(amt)+' added to wallet!');
+      setTimeout(()=>closeModal('modal-deposit'),2000);
+    },2500);
+  },1500);
+}
+
+async function pollDeposit(checkoutId, amt, btn, status){
+  // Poll backend every 3s for up to 60s
+  let tries=0;
+  const interval = setInterval(async ()=>{
+    tries++;
+    try {
+      const res  = await fetch(CONFIG.MPESA_BACKEND+'/stk-status?id='+checkoutId);
+      const data = await res.json();
+      if(data.status==='SUCCESS'){
+        clearInterval(interval);
+        currentUser.balance+=amt;
+        addTx('deposit',amt,'M-Pesa Deposit via STK Push');
+        await fbSaveUser(currentUser);
+        status.innerHTML='<div style="color:var(--green)">✅ '+fmt(amt)+' deposited!</div>';
+        btn.disabled=false; btn.textContent='📱 REQUEST STK PUSH';
+        renderWallet();
+        toast('💰 '+fmt(amt)+' added to wallet!');
+        setTimeout(()=>closeModal('modal-deposit'),2000);
+      } else if(data.status==='FAILED'||tries>=20){
+        clearInterval(interval);
+        status.innerHTML='<div style="color:var(--red)">❌ Payment not confirmed. Try again.</div>';
+        btn.disabled=false; btn.textContent='📱 REQUEST STK PUSH';
+      }
+    } catch(e){ /* keep polling */ }
+  },3000);
+}
+
+function setDepAmt(n){ document.getElementById('dep-amount').value=n; }
+
+// ═══════════════════════════════════════════════
+// M-PESA WITHDRAW (B2C)
+// ═══════════════════════════════════════════════
+async function doWithdraw(){
+  const amt   = +document.getElementById('wd-amount').value;
+  const phone = document.getElementById('wd-phone').value.trim();
+  const pin   = document.getElementById('wd-pin').value.trim();
+  if(amt<CONFIG.MIN_WITHDRAW){ toast('Minimum withdrawal is KSh '+CONFIG.MIN_WITHDRAW,'var(--red)'); return; }
+  if(amt>currentUser.balance){ toast('Insufficient balance','var(--red)'); return; }
+  if(phone.length<9){ toast('Enter valid M-Pesa number','var(--red)'); return; }
+  if(pin!==currentUser.pin){ toast('Wrong PIN','var(--red)'); return; }
+
+  const btn    = document.getElementById('wd-btn');
+  const status = document.getElementById('wd-status');
+  btn.disabled=true; btn.textContent='⏳ Processing…';
+  status.innerHTML='<div style="color:var(--muted)">Sending to M-Pesa…</div>';
+
+  if(!CONFIG.DEMO_MODE && CONFIG.MPESA_BACKEND !== "https://your-backend.com/api"){
+    // ── REAL B2C ──────────────────────────────────────────────────
+    try {
+      // Deduct first to prevent double-spend
+      currentUser.balance-=amt;
+      addTx('withdraw',-amt,'M-Pesa Withdrawal to +254'+phone);
+      await fbSaveUser(currentUser);
+      renderWallet();
+
+      const res = await fetch(CONFIG.MPESA_BACKEND+'/b2c',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({phone:'254'+phone, amount:amt, userId:currentUser.phone, remarks:'JACKPOT ARENA withdrawal'})
+      });
+      const data = await res.json();
+      if(data.ResponseCode==='0'){
+        status.innerHTML='<div style="color:var(--green)">✅ '+fmt(amt)+' sent to M-Pesa +254'+phone+'</div>';
+        toast('✅ Withdrawal sent!');
+      } else {
+        // Refund on failure
+        currentUser.balance+=amt;
+        addTx('deposit',amt,'Withdrawal refund (B2C failed)');
+        await fbSaveUser(currentUser);
+        renderWallet();
+        status.innerHTML='<div style="color:var(--red)">❌ B2C failed. Amount refunded.</div>';
+      }
+    } catch(e){
+      status.innerHTML='<div style="color:var(--red)">❌ Network error. Contact support.</div>';
+    }
+    btn.disabled=false; btn.textContent='💸 WITHDRAW NOW';
+    setTimeout(()=>closeModal('modal-withdraw'),3000);
+    return;
+  }
+
+  // ── DEMO ──────────────────────────────────────────────────────────
+  setTimeout(async ()=>{
+    currentUser.balance-=amt;
+    addTx('withdraw',-amt,'M-Pesa Withdrawal to +254'+phone);
+    await fbSaveUser(currentUser);
+    status.innerHTML='<div style="color:var(--green)">✅ '+fmt(amt)+' sent to M-Pesa +254'+phone+'</div>';
+    btn.disabled=false; btn.textContent='💸 WITHDRAW NOW';
+    renderWallet();
+    toast('✅ Withdrawal sent!');
+    setTimeout(()=>closeModal('modal-withdraw'),2500);
+  },2000);
+}
+
+// ═══════════════════════════════════════════════
+// BOT GAME
+// ═══════════════════════════════════════════════
+let isPracticeMode = false;
+const PRACTICE_CHIPS = 1000; // free chips for practice
+
+function setGameMode(mode){
+  isPracticeMode = (mode === 'practice');
+  const realBtn     = document.getElementById('mode-real-btn');
+  const practiceBtn = document.getElementById('mode-practice-btn');
+  const realPanel   = document.getElementById('join-real-panel');
+  const practPanel  = document.getElementById('join-practice-panel');
+  const joinBtn     = document.getElementById('join-btn');
+
+  if(isPracticeMode){
+    realBtn.style.borderColor     = 'var(--border2)';
+    realBtn.style.background      = 'transparent';
+    realBtn.style.color           = 'var(--muted2)';
+    practiceBtn.style.borderColor = 'var(--blue)';
+    practiceBtn.style.background  = 'rgba(0,176,255,0.1)';
+    practiceBtn.style.color       = 'var(--blue)';
+    realPanel.style.display       = 'none';
+    practPanel.style.display      = 'block';
+    joinBtn.textContent           = '🎮 START PRACTICE';
+    joinBtn.style.background      = 'linear-gradient(135deg,#0077b6,#00b0ff)';
+    joinBtn.style.color           = '#fff';
+    joinBtn.style.boxShadow       = '0 4px 20px rgba(0,176,255,0.3)';
+  } else {
+    realBtn.style.borderColor     = 'var(--gold)';
+    realBtn.style.background      = 'rgba(255,214,0,0.1)';
+    realBtn.style.color           = 'var(--gold)';
+    practiceBtn.style.borderColor = 'var(--border2)';
+    practiceBtn.style.background  = 'transparent';
+    practiceBtn.style.color       = 'var(--muted2)';
+    realPanel.style.display       = 'block';
+    practPanel.style.display      = 'none';
+    joinBtn.textContent           = '🚀 JOIN & PLAY';
+    joinBtn.style.background      = 'linear-gradient(135deg,#f9a825,#ffd600)';
+    joinBtn.style.color           = '#1a0f00';
+    joinBtn.style.boxShadow       = '0 4px 20px rgba(255,214,0,0.3)';
+  }
+}
+
+function startPracticeQuick(){
+  // Open the modal pre-set to practice mode
+  openModal('modal-join');
+  setGameMode('practice');
+}
+
+function selectEntry(amt){
+  selectedEntry=amt;
+  ['10','50','100','500'].forEach(a=>{
+    const el=document.getElementById('ef-'+a);
+    if(el){
+      el.style.borderColor = a==String(amt)?'var(--green)':'var(--border)';
+      el.style.color       = a==String(amt)?'var(--green)':'var(--muted)';
+    }
+  });
+  const after=(currentUser?.balance||0)-amt;
+  document.getElementById('join-after').textContent  = fmt(Math.max(0,after));
+  document.getElementById('join-after').style.color  = after>=0?'var(--green)':'var(--red)';
+  const pot = amt*(1+joinBots)*(1-CONFIG.PLATFORM_FEE);
+  document.getElementById('join-pot-val').textContent = fmt(pot);
+}
+
+async function doJoinGame(){
+  const errEl=document.getElementById('join-err');
+  errEl.textContent='';
+
+  if(isPracticeMode){
+    // Free practice — no balance touched
+    closeModal('modal-join');
+    isMultiplayer=false;
+    startGame(joinBots, joinRounds, PRACTICE_CHIPS, true);
+    return;
+  }
+
+  // Real money game
+  if(currentUser.balance<selectedEntry){ errEl.textContent='❌ Insufficient balance. Please deposit first.'; return; }
+  currentUser.balance-=selectedEntry;
+  addTx('game',-selectedEntry,'Game entry fee ('+joinBots+' opponents)');
+  await fbSaveUser(currentUser);
+  closeModal('modal-join');
+  isMultiplayer=false;
+  startGame(joinBots,joinRounds,selectedEntry, false);
+}
+
+// ═══════════════════════════════════════════════
+// MULTIPLAYER — ROOM MANAGEMENT (Firebase)
+// ═══════════════════════════════════════════════
+function switchMpTab(tab){
+  document.querySelectorAll('#mp-tabs .tab').forEach((t,i)=>t.classList.toggle('active',i===(tab==='create'?0:1)));
+  document.getElementById('mp-create').style.display = tab==='create'?'block':'none';
+  document.getElementById('mp-join').style.display   = tab==='join'  ?'block':'none';
+}
+
+function selectMpEntry(amt){
+  mpEntry=amt;
+  ['10','50','100','500'].forEach(a=>{
+    const el=document.getElementById('mp-ef-'+a);
+    if(el){
+      el.style.borderColor = a==String(amt)?'var(--green)':'var(--border)';
+      el.style.color       = a==String(amt)?'var(--green)':'var(--muted)';
+    }
+  });
+}
+
+async function createRoom(){
+  if(!fbReady){
+    document.getElementById('mp-create-err').textContent='❌ Firebase not configured. Multiplayer requires Firebase.';
+    return;
+  }
+  if(currentUser.balance<mpEntry){
+    document.getElementById('mp-create-err').textContent='❌ Insufficient balance.'; return;
+  }
+  closeModal('modal-mp');
+
+  const code = roomCode();
+  currentRoomId = code;
+  const roomData = {
+    code,
+    status:'waiting',
+    host: currentUser.phone,
+    entryFee: mpEntry,
+    maxPlayers: mpMaxPlayers,
+    rounds: mpRounds,
+    pot: mpEntry,
+    created: Date.now(),
+    players: {
+      [currentUser.phone]: {
+        name: currentUser.name,
+        phone: currentUser.phone,
+        avatar: '🙋🏾',
+        ready: false,
+        cash: mpEntry,
+        isHost: true,
+      }
+    }
+  };
+
+  // Deduct entry
+  currentUser.balance-=mpEntry;
+  addTx('game',-mpEntry,'Multiplayer room entry ('+code+')');
+  await fbSaveUser(currentUser);
+
+  await db.ref('rooms/'+code).set(roomData);
+  showLobby(code, true);
+}
+
+async function joinRoom(){
+  const code = document.getElementById('mp-room-code').value.trim();
+  if(code.length!==4){ document.getElementById('mp-join-err').textContent='❌ Enter 4-digit room code.'; return; }
+  if(!fbReady){ document.getElementById('mp-join-err').textContent='❌ Firebase required for multiplayer.'; return; }
+
+  const snap = await db.ref('rooms/'+code).once('value');
+  const room  = snap.val();
+  if(!room){ document.getElementById('mp-join-err').textContent='❌ Room not found.'; return; }
+  if(room.status!=='waiting'){ document.getElementById('mp-join-err').textContent='❌ Game already started.'; return; }
+  const count = Object.keys(room.players||{}).length;
+  if(count>=room.maxPlayers){ document.getElementById('mp-join-err').textContent='❌ Room is full.'; return; }
+  if(currentUser.balance<room.entryFee){ document.getElementById('mp-join-err').textContent='❌ Insufficient balance.'; return; }
+
+  closeModal('modal-mp');
+  currentUser.balance-=room.entryFee;
+  addTx('game',-room.entryFee,'Multiplayer room entry ('+code+')');
+  await fbSaveUser(currentUser);
+
+  await db.ref('rooms/'+code+'/players/'+currentUser.phone).set({
+    name: currentUser.name, phone: currentUser.phone,
+    avatar:'🙋🏾', ready:false, cash:room.entryFee, isHost:false
+  });
+  await db.ref('rooms/'+code+'/pot').transaction(v=>(v||0)+room.entryFee);
+  currentRoomId=code;
+  showLobby(code, false);
+}
+
+function showLobby(code, isHost){
+  showScreen('s-lobby');
+  document.getElementById('lobby-id-badge').textContent = 'ROOM: '+code;
+  document.getElementById('lobby-code-display').textContent = code;
+  document.getElementById('lobby-share').style.display = 'block';
+  document.getElementById('lobby-start-btn').style.display = isHost?'block':'none';
+
+  // Listen for room changes
+  if(roomListener){ roomListener(); }
+  roomListener = db.ref('rooms/'+code).on('value', snap=>{
+    const room=snap.val();
+    if(!room) return;
+    renderLobby(room, isHost);
+    // If host started the game
+    if(room.status==='playing' && !isHost){
+      startMpGameFromRoom(room);
+    }
+  });
+}
+
+function renderLobby(room, isHost){
+  const players = Object.values(room.players||{});
+  document.getElementById('lobby-pot').textContent      = fmt(room.pot||0);
+  document.getElementById('lobby-entry-info').textContent = `Entry: ${fmt(room.entryFee)} · Rounds: ${room.rounds}`;
+  document.getElementById('lobby-players').innerHTML    = players.map(p=>`
+    <div class="lobby-player ${p.phone===currentUser.phone?'ready':''}">
+      <span style="font-size:22px">${p.avatar||'👤'}</span>
+      <div style="flex:1">
+        <div style="font-weight:700;font-size:12px;color:${p.phone===currentUser.phone?'var(--green)':'var(--text)'}">${p.name}${p.isHost?' 👑':''}</div>
+        <div style="font-size:10px;color:var(--muted)">+254${p.phone}</div>
+      </div>
+      <span class="badge ${p.phone===currentUser.phone?'badge-green':'badge-muted'}">${p.phone===currentUser.phone?'YOU':'IN'}</span>
+    </div>
+  `).join('');
+
+  const enough = players.length>=2;
+  document.getElementById('lobby-waiting').style.display = enough?'none':'block';
+  document.getElementById('lobby-ready-msg').textContent = isHost
+    ? (enough?'✅ Ready to start!':'Waiting for more players…')
+    : 'Waiting for host to start…';
+  if(isHost) document.getElementById('lobby-start-btn').style.display = enough?'block':'none';
+}
+
+async function startMpGame(){
+  if(!currentRoomId) return;
+  const snap = await db.ref('rooms/'+currentRoomId).once('value');
+  const room  = snap.val();
+  if(!room) return;
+  await db.ref('rooms/'+currentRoomId+'/status').set('playing');
+  startMpGameFromRoom(room);
+}
+
+function startMpGameFromRoom(room){
+  if(roomListener){ roomListener(); roomListener=null; }
+  isMultiplayer=true;
+  const players = Object.values(room.players||{});
+  // Map to game player format
+  const gamePlayers = players.map(p=>({
+    id:    p.phone,
+    name:  p.name.split(' ')[0],
+    isBot: false,
+    isMe:  p.phone===currentUser.phone,
+    cash:  room.entryFee,
+    avatar:p.avatar||'👤',
+    strategy:'balanced'
+  }));
+  gameState={
+    players:gamePlayers, round:1, totalRounds:room.rounds,
+    entryFee:room.entryFee, phase:'invest',
+    pot:room.pot||room.entryFee*players.length,
+    roomId:currentRoomId
+  };
+  chosenMkt=null; investAmt=Math.floor(room.entryFee/2)||5; gameLog=[];
+  renderGameScreen();
+  showScreen('s-game');
+  document.getElementById('g-mode-badge').textContent='LIVE';
+  document.getElementById('g-mode-badge').className='badge badge-live';
+  startTimer();
+}
+
+async function leaveLobby(){
+  if(currentRoomId && fbReady){
+    // Refund entry
+    const snap = await db.ref('rooms/'+currentRoomId).once('value');
+    const room  = snap.val();
+    if(room && room.status==='waiting'){
+      const myEntry=room.entryFee;
+      currentUser.balance+=myEntry;
+      addTx('deposit',myEntry,'Room entry refund (left lobby)');
+      await fbSaveUser(currentUser);
+      await db.ref('rooms/'+currentRoomId+'/players/'+currentUser.phone).remove();
+      await db.ref('rooms/'+currentRoomId+'/pot').transaction(v=>Math.max(0,(v||0)-myEntry));
+    }
+  }
+  if(roomListener){ roomListener(); roomListener=null; }
+  currentRoomId=null;
+  showWallet();
+}
+
+// ═══════════════════════════════════════════════
+// GAME ENGINE
+// ═══════════════════════════════════════════════
+function startGame(numBots, numRounds, entryFee, practice=false){
+  isPracticeMode = practice;
+  const bots = BOT_NAMES.slice(0,numBots).map((name,i)=>({
+    id:uid(), name, isBot:true, isMe:false, cash:entryFee,
+    avatar:BOT_AVATARS[i], strategy:BOT_STRATS[i]
+  }));
+  const human = {id:'human', name:currentUser.name.split(' ')[0], isBot:false, isMe:true, cash:entryFee, avatar:'🙋🏾'};
+  gameState={
+    players:[human,...bots], round:1, totalRounds:numRounds,
+    entryFee, numBots, phase:'invest', pot:entryFee*(1+numBots), practice
+  };
+  chosenMkt=null; investAmt=Math.floor(entryFee/2)||5; gameLog=[];
+  renderGameScreen();
+  showScreen('s-game');
+  if(practice){
+    document.getElementById('g-mode-badge').textContent='PRACTICE';
+    document.getElementById('g-mode-badge').className='badge badge-muted';
+    document.getElementById('g-mode-badge').style.cssText='background:rgba(0,176,255,0.12);border:1px solid rgba(0,176,255,0.4);color:var(--blue);';
+  } else {
+    document.getElementById('g-mode-badge').textContent='BOT';
+    document.getElementById('g-mode-badge').className='badge badge-muted';
+    document.getElementById('g-mode-badge').style.cssText='';
+  }
+  startTimer();
+}
+
+function startTimer(){
+  clearInterval(timerInt); timerSecs=30; updateTimerUI();
+  timerInt=setInterval(()=>{ timerSecs--; updateTimerUI(); if(timerSecs<=0) resolveRound(); },1000);
+}
+
+function updateTimerUI(){
+  const arc=document.getElementById('g-arc');
+  const txt=document.getElementById('g-timer-txt');
+  const circ=2*Math.PI*19;
+  arc.setAttribute('stroke-dashoffset', circ*(1-timerSecs/30));
+  const c=timerSecs>15?'var(--green)':timerSecs>8?'var(--gold)':'var(--red)';
+  arc.setAttribute('stroke',c); txt.setAttribute('fill',c); txt.textContent=timerSecs;
+}
+
+function renderGameScreen(){
+  const gs=gameState;
+  const me=gs.players.find(p=>p.isMe||!p.isBot);
+  document.getElementById('g-round-badge').textContent = `ROUND ${gs.round}/${gs.totalRounds}`;
+  document.getElementById('g-pot-badge').textContent   = `POT: ${fmt(gs.pot)}`;
+  document.getElementById('g-stake-display').textContent = fmt(me?me.cash:0);
+
+  const sorted=[...gs.players].sort((a,b)=>b.cash-a.cash);
+  document.getElementById('g-leaders').innerHTML=sorted.map((p,i)=>`
+    <div style="display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid ${p.isMe||(!p.isBot&&!isMultiplayer)?'var(--green)':'var(--border)'};border-radius:10px;padding:6px 10px;min-width:115px;flex-shrink:0">
+      <span style="font-size:10px;color:var(--muted)">#${i+1}</span>
+      <span style="font-size:15px">${p.avatar}</span>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:${p.isMe?'var(--green)':'var(--text)'}">${p.name}</div>
+        <div style="font-size:10px;color:var(--muted)">${fmt(p.cash)}</div>
+      </div>
+    </div>
+  `).join('');
+
+  document.getElementById('g-markets').innerHTML=MARKETS.map(m=>`
+    <button class="mkt-btn ${chosenMkt===m.id?'sel':''}" onclick="selectMkt('${m.id}')"
+      style="${chosenMkt===m.id?`border-color:${m.color};background:${m.color}18;box-shadow:0 0 16px ${m.color}44`:''}">
+      <div style="font-size:19px">${m.icon}</div>
+      <div style="font-size:10px;font-weight:700;margin-top:3px;color:${chosenMkt===m.id?m.color:'var(--text)'}">${m.name}</div>
+      <div style="font-size:9px;color:${m.color};margin-top:2px">${pct(m.min)} ~ ${pct(m.max)}</div>
+    </button>
+  `).join('');
+
+  if(me){
+    const slider=document.getElementById('g-slider');
+    slider.max=Math.max(me.cash,5); slider.min=5; slider.step=Math.max(1,Math.floor(me.cash/20));
+    slider.value=clamp(investAmt,5,me.cash);
+    document.getElementById('g-amount-val').textContent=fmt(clamp(investAmt,5,me.cash));
+  }
+  document.getElementById('g-amount-panel').style.display = chosenMkt?'block':'none';
+  document.getElementById('g-no-choice').style.display    = chosenMkt?'none':'block';
+  document.getElementById('g-invest').style.display       = gs.phase==='invest'?'block':'none';
+  document.getElementById('g-reveal').style.display       = gs.phase==='reveal'?'block':'none';
+
+  document.getElementById('g-log').innerHTML=gameLog.slice(0,10).map(l=>`
+    <div style="font-size:10px;color:${l.startsWith('►')?'var(--gold)':'var(--muted)'};margin-bottom:1px">${l||'─'}</div>
+  `).join('');
+}
+
+function selectMkt(id){ chosenMkt=id; renderGameScreen(); }
+
+function updateSlider(){
+  investAmt=+document.getElementById('g-slider').value;
+  document.getElementById('g-amount-val').textContent=fmt(investAmt);
+}
+
+function setPct(f){
+  const me=gameState.players.find(p=>p.isMe||!p.isBot);
+  investAmt=Math.max(5,Math.round((me?me.cash:0)*f));
+  document.getElementById('g-slider').value=investAmt;
+  document.getElementById('g-amount-val').textContent=fmt(investAmt);
+}
+
+async function resolveRound(){
+  clearInterval(timerInt);
+  const gs=gameState;
+  gs.phase='reveal';
+
+  const resolved=gs.players.map(p=>{
+    let market,inv,ret,gain;
+    if(p.isBot){
+      market=botPick(p.strategy);
+      inv=clamp(Math.round(p.cash*(0.3+Math.random()*0.5)),5,p.cash);
+      ret=getRet(market); gain=Math.round(inv*ret);
+    } else if(p.isMe){
+      market=chosenMkt?MARKETS.find(m=>m.id===chosenMkt):null;
+      inv=market?clamp(investAmt,5,p.cash):0;
+      ret=market?getRet(market):0; gain=Math.round(inv*ret);
+    } else {
+      // Real multiplayer opponents — random pick (in full multiplayer each device resolves itself)
+      market=MARKETS[Math.floor(Math.random()*MARKETS.length)];
+      inv=clamp(Math.round(p.cash*(0.3+Math.random()*0.5)),5,p.cash);
+      ret=getRet(market); gain=Math.round(inv*ret);
+    }
+    return {...p, cash:Math.max(0,p.cash+gain), lastMkt:market?.name||"–", lastGain:gain, lastRet:ret};
+  });
+  gs.players=resolved;
+
+  document.getElementById('g-reveal-title').textContent=`► ROUND ${gs.round} RESULTS`;
+  const sortedRes=[...resolved].sort((a,b)=>b.lastGain-a.lastGain);
+  document.getElementById('g-results-list').innerHTML=sortedRes.map(r=>`
+    <div style="display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid ${r.isMe?'var(--green)':'var(--border)'};border-radius:10px;padding:10px 12px;margin-bottom:8px;flex-wrap:wrap">
+      <span style="font-size:14px">${r.avatar||'🤖'}</span>
+      <span style="font-weight:700;font-size:12px;min-width:60px">${r.name}</span>
+      <span style="font-size:10px;color:var(--muted);flex:1">${r.lastMkt}</span>
+      <span style="font-weight:900;font-size:12px;color:${r.lastGain>=0?'var(--green)':'var(--red)'}">${r.lastGain>=0?'+':''}${fmt(r.lastGain)}</span>
+      <span style="font-size:10px;color:var(--muted)">${fmt(r.cash)}</span>
+    </div>
+  `).join('');
+
+  const sortedL=[...resolved].sort((a,b)=>b.cash-a.cash);
+  document.getElementById('g-leaders').innerHTML=sortedL.map((p,i)=>`
+    <div style="display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid ${p.isMe?'var(--green)':'var(--border)'};border-radius:10px;padding:6px 10px;min-width:115px;flex-shrink:0">
+      <span style="font-size:10px;color:var(--muted)">#${i+1}</span>
+      <span style="font-size:15px">${p.avatar}</span>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:${p.isMe?'var(--green)':'var(--text)'}">${p.name}</div>
+        <div style="font-size:10px;color:var(--muted)">${fmt(p.cash)}</div>
+      </div>
+    </div>
+  `).join('');
+
+  document.getElementById('g-invest').style.display='none';
+  document.getElementById('g-reveal').style.display='block';
+
+  gameLog=['► Round '+gs.round,...resolved.map(r=>`${r.name}: ${r.lastMkt} ${r.lastGain>=0?'+':''}${fmt(r.lastGain)}`),''].concat(gameLog).slice(0,30);
+  document.getElementById('g-log').innerHTML=gameLog.slice(0,8).map(l=>`
+    <div style="font-size:10px;color:${l.startsWith('►')?'var(--gold)':'var(--muted)'};margin-bottom:1px">${l||'─'}</div>
+  `).join('');
+
+  if(gs.round>=gs.totalRounds){
+    setTimeout(()=>showResults(resolved),3000);
+  } else {
+    setTimeout(()=>{
+      gs.round++; gs.phase='invest'; chosenMkt=null;
+      renderGameScreen(); startTimer();
+    },3000);
+  }
+}
+
+// ═══════════════════════════════════════════════
+// RESULTS + PAYOUT
+// ═══════════════════════════════════════════════
+async function showResults(finalPlayers){
+  const sorted=[...finalPlayers].sort((a,b)=>b.cash-a.cash);
+  const humanWon = sorted[0].isMe;
+  const humanRank= sorted.findIndex(p=>p.isMe)+1;
+  const pot=gameState.pot;
+  const winnerPayout=Math.floor(pot*(1-CONFIG.PLATFORM_FEE));
+  const isPractice = gameState.practice || isPracticeMode;
+
+  if(isPractice){
+    // ── PRACTICE MODE: nothing touches the wallet ──
+    document.getElementById('r-title').textContent = humanWon ? '🎮 PRACTICE WIN!' : '🎮 PRACTICE OVER';
+    document.getElementById('r-title').style.color  = humanWon ? 'var(--blue)' : 'var(--muted2)';
+    document.getElementById('r-sub').textContent    = humanWon
+      ? `Great job! You finished #1 — now try it with real money!`
+      : `You finished #${humanRank}. Keep practising — no money lost!`;
+
+    document.getElementById('r-payout').innerHTML =
+      `<div style="background:rgba(0,176,255,0.07);border:1px solid rgba(0,176,255,0.3);border-radius:12px;padding:14px;text-align:center">
+        <div style="font-size:11px;color:var(--muted2);margin-bottom:4px;letter-spacing:1px">🎮 PRACTICE MODE</div>
+        <div style="font-size:14px;color:var(--blue);font-weight:700">No real money involved</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px">
+          ${humanWon ? 'You beat the bots! Ready to play for real?' : 'Lost this round — practice more or try real mode!'}
+        </div>
+      </div>`;
+
+  } else {
+    // ── REAL MONEY GAME ──
+    currentUser.stats.games++;
+    if(humanWon){
+      currentUser.stats.wins++;
+      currentUser.balance+=winnerPayout;
+      currentUser.stats.totalProfit+=(winnerPayout-gameState.entryFee);
+      addTx('game',winnerPayout,'🏆 WINNER PAYOUT — '+gameState.totalRounds+' round game');
+      toast('🏆 YOU WON '+fmt(winnerPayout)+'!');
+      if(isMultiplayer && gameState.roomId && fbReady){
+        await db.ref('rooms/'+gameState.roomId).remove();
+      }
+    } else {
+      currentUser.stats.totalProfit-=gameState.entryFee;
+    }
+    await fbSaveUser(currentUser);
+
+    // Write to leaderboard
+    if(fbReady){
+      await db.ref('leaderboard/'+currentUser.phone).set({
+        name:currentUser.name, phone:currentUser.phone,
+        wins:currentUser.stats.wins, games:currentUser.stats.games,
+        profit:currentUser.stats.totalProfit, updated:Date.now()
+      });
+    }
+
+    document.getElementById('r-title').textContent = humanWon?'🏆 YOU WON!':'💀 GAME OVER';
+    document.getElementById('r-title').style.color  = humanWon?'var(--gold)':'var(--red)';
+    document.getElementById('r-sub').textContent    = humanWon
+      ?`Congratulations! You finished #1 out of ${sorted.length} players!`
+      :`You finished #${humanRank}. Better luck next time!`;
+    document.getElementById('r-payout').innerHTML   = humanWon
+      ?`<div style="background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.4);border-radius:12px;padding:16px;text-align:center"><div style="font-size:11px;color:var(--muted2);margin-bottom:4px">CREDITED TO WALLET</div><div style="font-size:32px;color:var(--green);font-family:'Orbitron',monospace;text-shadow:0 0 20px rgba(0,230,118,0.4)">+${fmt(winnerPayout)}</div></div>`
+      :`<div style="background:rgba(255,61,113,0.06);border:1px solid rgba(255,61,113,0.3);border-radius:12px;padding:12px;text-align:center">
+          <div style="font-size:12px;color:var(--muted2);margin-bottom:8px">Entry fee lost: ${fmt(gameState.entryFee)}</div>
+          <button onclick="setGameMode('practice');openModal('modal-join');showScreen('s-wallet');renderWallet();"
+            style="padding:8px 16px;border-radius:8px;border:1px solid rgba(0,176,255,0.4);background:rgba(0,176,255,0.08);color:var(--blue);font-family:'Share Tech Mono',monospace;font-size:11px;cursor:pointer;font-weight:700">
+            🎮 Try Free Practice Mode
+          </button>
+        </div>`;
+  }
+
+  const medals=["🥇","🥈","🥉"];
+  document.getElementById('r-board').innerHTML=sorted.map((p,i)=>`
+    <div style="display:flex;align-items:center;gap:12px;background:${i===0?'rgba(255,214,0,0.06)':i===1?'rgba(255,255,255,0.03)':'var(--card)'};border:1px solid ${p.isMe?'rgba(0,230,118,0.5)':i===0?'rgba(255,214,0,0.4)':'var(--border)'};border-radius:14px;padding:12px 16px;margin-bottom:10px;animation:pop 0.4s ${i*0.1}s both">
+      <span style="font-size:22px">${medals[i]||('#'+(i+1))}</span>
+      <span style="font-size:20px">${p.avatar}</span>
+      <div style="flex:1">
+        <div style="font-weight:700;color:${p.isMe?'var(--green)':'var(--text)'};font-size:13px">${p.name}${p.isMe?' (YOU)':''}</div>
+        <div style="font-size:16px;font-weight:900;font-family:'Orbitron',monospace">${fmt(p.cash)}</div>
+      </div>
+      <div style="font-weight:900;font-size:13px;color:${p.cash>=gameState.entryFee?'var(--green)':'var(--red)'}">
+        ${p.cash>=gameState.entryFee?'+':''}${fmt(p.cash-gameState.entryFee)}
+      </div>
+    </div>
+  `).join('');
+
+  showScreen('s-results');
+
+  if(humanWon && !isPractice){
+    const wrap=document.getElementById('confetti-wrap'); wrap.innerHTML='';
+    const colors=['#00e676','#ffd600','#f50057','#d500f9','#ff6d00','#00c853'];
+    for(let i=0;i<70;i++){
+      const el=document.createElement('div'); el.className='cp';
+      el.style.cssText=`left:${Math.random()*100}%;background:${colors[i%colors.length]};width:${6+Math.random()*8}px;height:${6+Math.random()*8}px;animation-delay:${Math.random()*2}s`;
+      wrap.appendChild(el);
+    }
+    setTimeout(()=>wrap.innerHTML='',5000);
+  }
+}
+
+// ═══════════════════════════════════════════════
+// LEADERBOARD
+// ═══════════════════════════════════════════════
+async function showLeaderboard(){
+  showScreen('s-leaderboard');
+  document.getElementById('lb-list').innerHTML='<div class="spinner" style="margin:30px auto"></div>';
+  let players=[];
+  if(fbReady){
+    const snap = await db.ref('leaderboard').orderByChild('wins').limitToLast(20).once('value');
+    const data  = snap.val()||{};
+    players=Object.values(data).sort((a,b)=>b.wins-a.wins||b.profit-a.profit);
+  } else {
+    players=Object.values(JSON.parse(localStorage.getItem('pesaUsers')||'{}'))
+      .sort((a,b)=>b.stats.wins-a.stats.wins);
+    players=players.map(p=>({name:p.name,phone:p.phone,wins:p.stats.wins,games:p.stats.games,profit:p.stats.totalProfit}));
+  }
+  const medals=['🥇','🥈','🥉'];
+  document.getElementById('lb-list').innerHTML=players.length===0
+    ?'<div style="text-align:center;color:var(--muted);padding:30px">No data yet</div>'
+    :players.map((p,i)=>`
+      <div style="display:flex;align-items:center;gap:12px;background:${i<3?'rgba(255,214,0,0.05)':'var(--card)'};border:1px solid ${p.phone===currentUser?.phone?'rgba(0,230,118,0.5)':i===0?'rgba(255,214,0,0.4)':i===1?'rgba(255,255,255,0.15)':i===2?'rgba(205,127,50,0.4)':'var(--border)'};border-radius:12px;padding:12px 14px;margin-bottom:8px">
+        <span style="font-size:20px">${medals[i]||('#'+(i+1))}</span>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:12px;color:${p.phone===currentUser?.phone?'var(--green)':'var(--text)'}">${p.name}${p.phone===currentUser?.phone?' (YOU)':''}</div>
+          <div style="font-size:10px;color:var(--muted)">${p.wins} wins · ${p.games} games</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:12px;color:${p.profit>=0?'var(--green)':'var(--red)'};font-weight:700">${p.profit>=0?'+':''}${fmt(p.profit)}</div>
+          <div style="font-size:9px;color:var(--muted)">PROFIT</div>
+        </div>
+      </div>
+    `).join('');
+}
+
+// ═══════════════════════════════════════════════
+// ADMIN DASHBOARD
+// ═══════════════════════════════════════════════
+function showAdmin(){
+  if(!isAdmin()){ toast('Access denied','var(--red)'); return; }
+  showScreen('s-admin');
+  loadAdminData();
+}
+
+async function loadAdminData(){
+  const users = await fbGetAllUsers();
+  const totalBal  = users.reduce((s,u)=>s+(u.balance||0),0);
+  const totalGames= users.reduce((s,u)=>s+(u.stats?.games||0),0);
+  document.getElementById('adm-users').textContent = users.length;
+  document.getElementById('adm-bal').textContent   = fmt(totalBal);
+  document.getElementById('adm-games').textContent = totalGames;
+
+  document.getElementById('adm-table').innerHTML = users
+    .sort((a,b)=>(b.balance||0)-(a.balance||0))
+    .map(u=>`
+      <tr>
+        <td style="color:var(--text)">${u.name}</td>
+        <td style="color:var(--muted)">+254${u.phone}</td>
+        <td style="color:var(--green);font-weight:700">${fmt(u.balance||0)}</td>
+        <td style="color:var(--muted)">${u.stats?.games||0}</td>
+        <td style="color:var(--gold)">${u.stats?.wins||0}</td>
+        <td>${u.frozen
+          ?'<span class="badge badge-red">FROZEN</span>'
+          :'<span class="badge badge-green">ACTIVE</span>'}</td>
+      </tr>
+    `).join('');
+}
+
+async function adminCredit(){
+  const phone  = document.getElementById('adm-phone').value.trim();
+  const amount = +document.getElementById('adm-amount').value;
+  const note   = document.getElementById('adm-note').value.trim()||'Admin adjustment';
+  const status = document.getElementById('adm-credit-status');
+  if(phone.length<9||isNaN(amount)||amount===0){ status.innerHTML='<span style="color:var(--red)">❌ Enter valid phone & amount</span>'; return; }
+
+  const user=await fbGetUser(phone);
+  if(!user){ status.innerHTML='<span style="color:var(--red)">❌ User not found</span>'; return; }
+  user.balance=(user.balance||0)+amount;
+  const txType=amount>=0?'deposit':'withdraw';
+  user.txs=user.txs||[];
+  user.txs.unshift({type:txType,amount,desc:'ADMIN: '+note,time:new Date().toLocaleString('en-KE',{hour:'2-digit',minute:'2-digit',day:'numeric',month:'short'})});
+  user.txs=user.txs.slice(0,50);
+  await fbSaveUser(user);
+  status.innerHTML=`<span style="color:var(--green)">✅ ${amount>=0?'Credited':'Debited'} ${fmt(Math.abs(amount))} to ${user.name}</span>`;
+  loadAdminData();
+}
+
+async function adminFreeze(freeze){
+  const phone  = document.getElementById('adm-freeze-phone').value.trim();
+  const status = document.getElementById('adm-freeze-status');
+  if(phone.length<9){ status.innerHTML='<span style="color:var(--red)">❌ Enter valid phone</span>'; return; }
+  const user=await fbGetUser(phone);
+  if(!user){ status.innerHTML='<span style="color:var(--red)">❌ User not found</span>'; return; }
+  user.frozen=freeze;
+  await fbSaveUser(user);
+  status.innerHTML=`<span style="color:${freeze?'var(--red)':'var(--green)'}">${freeze?'🔒 Account frozen':'🔓 Account unfrozen'}: ${user.name}</span>`;
+  loadAdminData();
+}
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+window.onload=()=>{
+  initFirebase();
+  selectEntry(50);
+  selectMpEntry(50);
+};
+</script>
+</body>
+</html>
